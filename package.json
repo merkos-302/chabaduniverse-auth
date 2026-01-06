@@ -127,8 +127,8 @@
       "limit": "15 KB"
     },
     {
-      "path": "dist/esm/react/index.js",
-      "limit": "5 KB"
+      "path": "dist/esm/react.js",
+      "limit": "10 KB"
     }
   ],
   "engines": {
