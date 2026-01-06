@@ -154,8 +154,7 @@ describe('ActivityTracker', () => {
       jest.useRealTimers();
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should send batch when batchSize is reached', async () => {
+    it('should send batch when batchSize is reached', async () => {
       // Track 5 events (reaches batch size)
       for (let i = 0; i < 5; i++) {
         tracker.trackEvent({
@@ -165,8 +164,10 @@ describe('ActivityTracker', () => {
         });
       }
 
-      // Advance timers to allow async operations
+      // Advance timers and flush promises to allow async operations
       await jest.runAllTimersAsync();
+      // Give microtasks a chance to complete
+      await Promise.resolve();
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -206,8 +207,7 @@ describe('ActivityTracker', () => {
       jest.useRealTimers();
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should send batch after batchTimeout', async () => {
+    it('should send batch after batchTimeout', async () => {
       // Track 2 events (below batch size)
       tracker.trackEvent({
         type: 'click',
@@ -222,25 +222,23 @@ describe('ActivityTracker', () => {
 
       expect(tracker.getState().pendingEvents.length).toBe(2);
 
-      // Advance by batchTimeout (2000ms)
-      jest.advanceTimersByTime(2000);
-      await jest.runAllTimersAsync();
+      // Advance by batchTimeout (2000ms) - use async version
+      await jest.advanceTimersByTimeAsync(2000);
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(tracker.getState().pendingEvents.length).toBe(0);
       expect(tracker.getState().totalEventsSent).toBe(2);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should reset timer when new event arrives before timeout', async () => {
+    it('should reset timer when new event arrives before timeout', async () => {
       tracker.trackEvent({
         type: 'click',
         action: 'click',
         target: 'button-1',
       });
 
-      // Advance 1 second (half of timeout)
-      jest.advanceTimersByTime(1000);
+      // Advance 1 second (half of timeout) - use async version
+      await jest.advanceTimersByTimeAsync(1000);
 
       // Add another event, resetting the timer
       tracker.trackEvent({
@@ -250,7 +248,7 @@ describe('ActivityTracker', () => {
       });
 
       // Advance another second (total 2s, but timer was reset)
-      jest.advanceTimersByTime(1000);
+      await jest.advanceTimersByTimeAsync(1000);
 
       // Should not have sent yet because timer was reset
       expect(mockFetch).not.toHaveBeenCalled();
@@ -401,8 +399,7 @@ describe('ActivityTracker', () => {
       expect(tracker.getState().pendingEvents.length).toBe(1);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should clear pending events when stopped', () => {
+    it('should clear pending events when stopped', () => {
       tracker.trackEvent({
         type: 'click',
         action: 'click',
@@ -426,8 +423,7 @@ describe('ActivityTracker', () => {
       jest.useRealTimers();
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should track total events correctly', async () => {
+    it('should track total events correctly', async () => {
       // Track 7 events total
       for (let i = 0; i < 7; i++) {
         tracker.trackEvent({
@@ -439,8 +435,10 @@ describe('ActivityTracker', () => {
 
       expect(tracker.getState().totalEventsTracked).toBe(7);
 
-      // Wait for batch to send (first 5)
-      await jest.runAllTimersAsync();
+      // Wait for the first batch to send (triggered immediately when batchSize reached)
+      // Don't use runAllTimersAsync() as it would also trigger the timer for remaining events
+      await Promise.resolve();
+      await Promise.resolve(); // Give microtasks time to complete
 
       expect(tracker.getState().totalEventsTracked).toBe(7); // Still 7 total
       expect(tracker.getState().totalEventsSent).toBe(5); // Only 5 sent

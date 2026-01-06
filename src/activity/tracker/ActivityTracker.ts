@@ -74,7 +74,7 @@ export class ActivityTracker {
   }
 
   /**
-   * Stop the tracker
+   * Stop the tracker and clear pending events
    */
   stop(): void {
     this.isActive = false;
@@ -82,6 +82,8 @@ export class ActivityTracker {
       clearTimeout(this.batchTimer);
       this.batchTimer = null;
     }
+    // Clear pending events when stopping
+    this.pendingEvents = [];
   }
 
   /**
@@ -106,12 +108,13 @@ export class ActivityTracker {
     if (this.pendingEvents.length >= this.batchSize) {
       this.sendBatch();
     } else {
-      // Schedule batch send if not already scheduled
-      if (!this.batchTimer) {
-        this.batchTimer = setTimeout(() => {
-          this.sendBatch();
-        }, this.batchTimeout);
+      // Reset timer on new event (restart timeout)
+      if (this.batchTimer) {
+        clearTimeout(this.batchTimer);
       }
+      this.batchTimer = setTimeout(() => {
+        this.sendBatch();
+      }, this.batchTimeout);
     }
   }
 

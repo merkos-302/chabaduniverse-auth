@@ -76,19 +76,18 @@ describe('AdaptivePoller', () => {
       expect(poller.getState()).toBe('idle');
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should return to default state from idle on activity', () => {
+    it('should return to active state from idle on activity', async () => {
       poller.start();
 
-      // Move to idle
-      jest.advanceTimersByTime(300000);
+      // Move to idle - use async version
+      await jest.advanceTimersByTimeAsync(300000);
       expect(poller.getState()).toBe('idle');
 
-      // Trigger activity
+      // Trigger activity - should transition to active, not default
       const event = new Event('keypress');
       window.dispatchEvent(event);
 
-      expect(poller.getState()).toBe('default');
+      expect(poller.getState()).toBe('active');
     });
 
     it('should transition to stopped state when stopped', () => {
@@ -101,8 +100,7 @@ describe('AdaptivePoller', () => {
   });
 
   describe('Polling Intervals', () => {
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should return correct interval for each state', () => {
+    it('should return correct interval for each state', async () => {
       expect(poller.getCurrentInterval()).toBe(0); // stopped
 
       poller.start();
@@ -111,25 +109,23 @@ describe('AdaptivePoller', () => {
       window.dispatchEvent(new Event('click'));
       expect(poller.getCurrentInterval()).toBe(10000); // active
 
-      jest.advanceTimersByTime(300000);
+      await jest.advanceTimersByTimeAsync(300000);
       expect(poller.getCurrentInterval()).toBe(60000); // idle
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should poll at default interval', () => {
+    it('should poll at default interval', async () => {
       poller.start();
 
       // Should not have polled yet
       expect(onPoll).toHaveBeenCalledTimes(0);
 
-      // Advance by default interval
-      jest.advanceTimersByTime(30000);
+      // Advance by default interval - use async version
+      await jest.advanceTimersByTimeAsync(30000);
 
       expect(onPoll).toHaveBeenCalledTimes(1);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should poll at active interval when active', () => {
+    it('should poll at active interval when active', async () => {
       poller.start();
 
       // Trigger activity to switch to active state
@@ -138,24 +134,23 @@ describe('AdaptivePoller', () => {
       // Reset mock to clear initial calls
       onPoll.mockClear();
 
-      // Advance by active interval (10s)
-      jest.advanceTimersByTime(10000);
+      // Advance by active interval (10s) - use async version
+      await jest.advanceTimersByTimeAsync(10000);
 
       expect(onPoll).toHaveBeenCalledTimes(1);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should poll at idle interval when idle', () => {
+    it('should poll at idle interval when idle', async () => {
       poller.start();
 
-      // Move to idle state
-      jest.advanceTimersByTime(300000);
+      // Move to idle state - use async version
+      await jest.advanceTimersByTimeAsync(300000);
 
       // Reset mock
       onPoll.mockClear();
 
-      // Advance by idle interval (60s)
-      jest.advanceTimersByTime(60000);
+      // Advance by idle interval (60s) - use async version
+      await jest.advanceTimersByTimeAsync(60000);
 
       expect(onPoll).toHaveBeenCalledTimes(1);
     });
@@ -218,26 +213,24 @@ describe('AdaptivePoller', () => {
   });
 
   describe('Polling Behavior', () => {
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should call onPoll periodically in default state', () => {
+    it('should call onPoll periodically in default state', async () => {
       poller.start();
 
-      jest.advanceTimersByTime(30000); // First poll
+      await jest.advanceTimersByTimeAsync(30000); // First poll
       expect(onPoll).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(30000); // Second poll
+      await jest.advanceTimersByTimeAsync(30000); // Second poll
       expect(onPoll).toHaveBeenCalledTimes(2);
 
-      jest.advanceTimersByTime(30000); // Third poll
+      await jest.advanceTimersByTimeAsync(30000); // Third poll
       expect(onPoll).toHaveBeenCalledTimes(3);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should adjust polling frequency when switching states', () => {
+    it('should adjust polling frequency when switching states', async () => {
       poller.start();
 
-      // Poll once in default state
-      jest.advanceTimersByTime(30000);
+      // Poll once in default state - use async version
+      await jest.advanceTimersByTimeAsync(30000);
       expect(onPoll).toHaveBeenCalledTimes(1);
 
       // Switch to active state
@@ -246,16 +239,15 @@ describe('AdaptivePoller', () => {
       // Clear mock
       onPoll.mockClear();
 
-      // Should now poll every 10s
-      jest.advanceTimersByTime(10000);
+      // Should now poll every 10s - use async version
+      await jest.advanceTimersByTimeAsync(10000);
       expect(onPoll).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(10000);
+      await jest.advanceTimersByTimeAsync(10000);
       expect(onPoll).toHaveBeenCalledTimes(2);
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should handle async onPoll callback', async () => {
+    it('should handle async onPoll callback', async () => {
       const asyncOnPoll = jest.fn().mockResolvedValue(undefined);
       const asyncPoller = new AdaptivePoller({
         defaultInterval: 30000,
@@ -267,8 +259,8 @@ describe('AdaptivePoller', () => {
 
       asyncPoller.start();
 
-      jest.advanceTimersByTime(30000);
-      await jest.runAllTimersAsync();
+      // Use async version to advance timers and resolve promises
+      await jest.advanceTimersByTimeAsync(30000);
 
       expect(asyncOnPoll).toHaveBeenCalled();
 
@@ -277,8 +269,7 @@ describe('AdaptivePoller', () => {
   });
 
   describe('Error Handling', () => {
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should call onError when onPoll throws', async () => {
+    it('should call onError when onPoll throws', async () => {
       const errorOnPoll = jest.fn().mockRejectedValue(new Error('Poll failed'));
       const errorPoller = new AdaptivePoller({
         defaultInterval: 30000,
@@ -291,8 +282,8 @@ describe('AdaptivePoller', () => {
 
       errorPoller.start();
 
-      jest.advanceTimersByTime(30000);
-      await jest.runAllTimersAsync();
+      // Use async version to advance timers and resolve promises
+      await jest.advanceTimersByTimeAsync(30000);
 
       expect(onError).toHaveBeenCalledWith(expect.any(Error));
       expect(onError).toHaveBeenCalledWith(
@@ -304,8 +295,7 @@ describe('AdaptivePoller', () => {
       errorPoller.stop();
     });
 
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should continue polling after error', async () => {
+    it('should continue polling after error', async () => {
       const errorOnPoll = jest.fn().mockRejectedValue(new Error('Poll failed'));
       const errorPoller = new AdaptivePoller({
         defaultInterval: 30000,
@@ -318,16 +308,14 @@ describe('AdaptivePoller', () => {
 
       errorPoller.start();
 
-      // First poll fails
-      jest.advanceTimersByTime(30000);
-      await jest.runAllTimersAsync();
+      // First poll fails - use async version
+      await jest.advanceTimersByTimeAsync(30000);
 
       expect(errorOnPoll).toHaveBeenCalledTimes(1);
       expect(onError).toHaveBeenCalledTimes(1);
 
-      // Second poll should still happen
-      jest.advanceTimersByTime(30000);
-      await jest.runAllTimersAsync();
+      // Second poll should still happen - use async version
+      await jest.advanceTimersByTimeAsync(30000);
 
       expect(errorOnPoll).toHaveBeenCalledTimes(2);
       expect(onError).toHaveBeenCalledTimes(2);
@@ -337,17 +325,16 @@ describe('AdaptivePoller', () => {
   });
 
   describe('Lifecycle Management', () => {
-    // TODO: Fix timer-related test failure (GitHub Issue #5)
-    it.skip('should stop polling when stopped', () => {
+    it('should stop polling when stopped', async () => {
       poller.start();
 
-      jest.advanceTimersByTime(30000);
+      await jest.advanceTimersByTimeAsync(30000);
       expect(onPoll).toHaveBeenCalledTimes(1);
 
       poller.stop();
 
-      // Advance time - should not poll
-      jest.advanceTimersByTime(30000);
+      // Advance time - should not poll - use async version
+      await jest.advanceTimersByTimeAsync(30000);
       expect(onPoll).toHaveBeenCalledTimes(1); // Still 1, no new polls
     });
 

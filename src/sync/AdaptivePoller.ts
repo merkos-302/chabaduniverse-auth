@@ -89,10 +89,13 @@ export class AdaptivePoller {
    */
   getCurrentInterval(): number {
     switch (this.state) {
+      case 'stopped':
+        return 0;
       case 'active':
         return this.activeInterval;
       case 'idle':
         return this.idleInterval;
+      case 'default':
       default:
         return this.defaultInterval;
     }
