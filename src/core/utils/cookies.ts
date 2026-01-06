@@ -197,7 +197,7 @@ function getCookieDomain(): string {
 function isInIframe(): boolean {
   try {
     return typeof window !== 'undefined' && window.self !== window.top;
-  } catch (e) {
+  } catch (_e) {
     // If accessing window.top throws an error, we're likely in a cross-origin iframe
     return true;
   }
@@ -385,7 +385,7 @@ export function getValuUser(): ValuUserCache | null {
     let parsedData: any;
     try {
       parsedData = JSON.parse(cookieValue);
-    } catch (parseError) {
+    } catch (_parseError) {
       // Clear corrupted cookie
       clearValuUser();
       return null;
@@ -400,7 +400,7 @@ export function getValuUser(): ValuUserCache | null {
 
     return parsedData;
 
-  } catch (error) {
+  } catch (_error) {
     // Clear potentially corrupted cookie on any error
     clearValuUser();
     return null;
@@ -482,7 +482,7 @@ export function hasValuUser(): boolean {
     const cachedUser = getValuUser();
     return cachedUser !== null;
 
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -511,7 +511,7 @@ export function getValuCacheMetadata(): { cachedAt: string; expiresAt: string; i
       isExpired
     };
 
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -538,7 +538,7 @@ export function refreshValuCache(): boolean {
     setValuUser(refreshedUser);
     return true;
 
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
