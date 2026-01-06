@@ -420,7 +420,7 @@ export const useValuAuth = (): UseValuAuthReturn => {
               try {
                 parsedResult = JSON.parse(result);
                 console.debug(`[ValuAuth] Parsed JSON result from "${command}":`, parsedResult);
-              } catch (parseError) {
+              } catch (_parseError) {
                 console.debug(`[ValuAuth] Command "${command}" result not JSON, using as-is:`, { result });
                 parsedResult = result as unknown as ValuUser;
               }
