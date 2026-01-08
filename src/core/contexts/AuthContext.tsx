@@ -12,6 +12,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { merkosAuthCookie } from "../utils/cookies";
 import { CDSSOUtils } from "../utils/cdsso";
+import { logger } from "../utils/logger";
 
 // ============================================================================
 // API Adapter Interfaces
@@ -249,7 +250,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
     const initializeAuth = async () => {
       // Check if we've already attempted verification with this token
       if (verificationAttemptedRef.current) {
-        console.debug('[Auth] Verification already attempted, skipping');
+        logger.debug('[Auth] Verification already attempted, skipping');
         return;
       }
 
@@ -269,7 +270,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
         // Check if this is the same token we already verified
         if (token && token === lastVerifiedTokenRef.current) {
-          console.debug('[Auth] Token already verified, using cached auth state');
+          logger.debug('[Auth] Token already verified, using cached auth state');
           return;
         }
 
@@ -283,9 +284,9 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
           // Try to verify with API
           try {
-            console.info('[Auth] Verifying token', { source: tokenSource, tokenLength: token.length });
+            logger.info('[Auth] Verifying token', { source: tokenSource });
             const userInfo = await apiAdapter.v2Request("auth", "auth:user:info", {});
-            console.log('[Auth] Token validation successful', { userId: userInfo.user?.id || userInfo.id, source: tokenSource });
+            logger.info('[Auth] Token validation successful', { userId: userInfo.user?.id || userInfo.id, source: tokenSource });
 
             // Check token expiration even for API-verified tokens
             try {
@@ -295,7 +296,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
                 if (payload.exp) {
                   const currentTime = Math.floor(Date.now() / 1000);
                   if (payload.exp < currentTime) {
-                    console.warn('[Auth] JWT token has expired (API verified)', {
+                    logger.warn('[Auth] JWT token has expired (API verified)', {
                       expiredAt: new Date(payload.exp * 1000).toISOString(),
                       currentTime: new Date(currentTime * 1000).toISOString()
                     });
@@ -319,7 +320,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
                 }
               }
             } catch (decodeError: any) {
-              console.debug('[Auth] Could not decode token for expiration check', { error: decodeError.message });
+              logger.debug('[Auth] Could not decode token for expiration check', { error: decodeError.message });
               // Continue with API verification if decode fails - API already validated it
             }
 
@@ -344,19 +345,19 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
             isInitializingRef.current = false; // Initialization complete
             return;
           } catch (apiError: any) {
-            console.warn('[Auth] API verification failed, trying JWT decode fallback', { error: apiError.message });
+            logger.warn('[Auth] API verification failed, trying JWT decode fallback', { error: apiError.message });
             // Try JWT decode as fallback
             try {
               const tokenParts = token.trim().split(".");
               if (tokenParts.length === 3) {
                 const payload = JSON.parse(atob(tokenParts[1]!));
-                console.debug('[Auth] JWT payload decoded', { hasUser: !!payload.user, hasSub: !!payload.sub });
+                logger.debug('[Auth] JWT payload decoded', { hasUser: !!payload.user, hasSub: !!payload.sub });
 
                 // Check token expiration
                 if (payload.exp) {
                   const currentTime = Math.floor(Date.now() / 1000);
                   if (payload.exp < currentTime) {
-                    console.warn('[Auth] JWT token has expired', {
+                    logger.warn('[Auth] JWT token has expired', {
                       expiredAt: new Date(payload.exp * 1000).toISOString(),
                       currentTime: new Date(currentTime * 1000).toISOString()
                     });
@@ -395,8 +396,8 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
                     permissions: payload.user?.permissions || [],
                   };
 
-                  console.log('[Auth Init] JWT decode successful, user data:', userData);
-                  console.log('[Auth] Token validation successful (JWT fallback)', { userId: userData.id, source: 'jwt-fallback' });
+                  logger.info('[Auth Init] JWT decode successful', { userId: userData.id });
+                  logger.info('[Auth] Token validation successful (JWT fallback)', { userId: userData.id, source: 'jwt-fallback' });
                   updateAuthState({
                     isAuthenticated: true,
                     user: userData,
@@ -413,7 +414,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
                 }
               }
             } catch (jwtError: any) {
-              console.warn('[Auth] JWT decode failed', { error: jwtError.message });
+              logger.warn('[Auth] JWT decode failed', { error: jwtError.message });
             }
           }
         } else {
@@ -439,7 +440,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
         });
         isInitializingRef.current = false; // Initialization complete (no token found)
       } catch (error: any) {
-        console.error('[Auth] Auth initialization error', error, { timestamp: new Date().toISOString() });
+        logger.error('[Auth] Auth initialization error', { error: error.message, timestamp: new Date().toISOString() });
         updateAuthState({
           isAuthenticated: false,
           user: null,
@@ -464,16 +465,16 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    */
   const loginWithBearerToken = useCallback(
     async (bearerToken: string, siteId: string | null = null) => {
-      console.info('[Auth] Attempting bearer token login', { siteId, tokenPreview: bearerToken?.substring(0, 10) + '...' });
+      logger.info('[Auth] Attempting bearer token login', { siteId });
       updateAuthState({ isLoading: true, error: null });
 
       try {
         const response = await userServiceAdapter.auth.loginWithBearerToken(bearerToken, siteId);
-        console.debug('[Auth] Bearer token login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
+        logger.debug('[Auth] Bearer token login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
 
         if (response.success && response.token) {
           const { token: authToken, user: userData } = response;
-          console.log('[Auth] Login attempt successful', { method: 'bearer', identifier: userData?.email || userData?.id || 'unknown', tokenLength: authToken?.length });
+          logger.info('[Auth] Login attempt successful', { method: 'bearer', userId: userData?.id || 'unknown' });
 
           // Store token in both cookie and localStorage
           tokenStorage.setToken(authToken);
@@ -495,11 +496,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
           return response;
         } else {
-          console.error('[Auth] Bearer token login failed - invalid response', null, { response });
+          logger.error('[Auth] Bearer token login failed - invalid response');
           throw new Error("Bearer token authentication failed: Invalid response");
         }
       } catch (error: any) {
-        console.error('[Auth] Bearer token login error', error, {
+        logger.error('[Auth] Bearer token login error', {
           message: error.message,
           code: error.code,
           status: error.status,
@@ -523,7 +524,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    */
   const loginWithCredentials = useCallback(
     async (username: string, password: string, siteId: string | null = null) => {
-      console.info('[Auth] Attempting credentials login', { username, siteId });
+      logger.info('[Auth] Attempting credentials login', { siteId });
       updateAuthState({ isLoading: true, error: null });
 
       try {
@@ -532,11 +533,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
           password,
           siteId,
         });
-        console.debug('[Auth] Credentials login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
+        logger.debug('[Auth] Credentials login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
 
         if (response.success && response.token) {
           const { token: authToken, user: userData } = response;
-          console.log('[Auth] Login attempt successful', { method: 'credentials', identifier: username, tokenLength: authToken?.length });
+          logger.info('[Auth] Login attempt successful', { method: 'credentials', userId: userData?.id || 'unknown' });
 
           // Store token in both cookie and localStorage
           tokenStorage.setToken(authToken);
@@ -558,11 +559,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
           return response;
         } else {
-          console.error('[Auth] Credentials login failed - invalid response', null, { response });
+          logger.error('[Auth] Credentials login failed - invalid response');
           throw new Error("Login failed: Invalid response");
         }
       } catch (error: any) {
-        console.error('[Auth] Credentials login error', error, {
+        logger.error('[Auth] Credentials login error', {
           message: error.message,
           code: error.code,
           status: error.status,
@@ -586,7 +587,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    */
   const loginWithGoogle = useCallback(
     async (code: string, host: string | null = null, siteId: string | null = null) => {
-      console.info('[Auth] Attempting Google OAuth login', { codePreview: code?.substring(0, 10) + '...', host, siteId });
+      logger.info('[Auth] Attempting Google OAuth login', { host, siteId });
       updateAuthState({ isLoading: true, error: null });
 
       try {
@@ -595,11 +596,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
           host,
           siteId,
         });
-        console.debug('[Auth] Google login response received', { response });
+        logger.debug('[Auth] Google login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
 
         if (response.success && response.token) {
           const { token: authToken, user: userData } = response;
-          console.log('[Auth] Login attempt successful', { method: 'google', identifier: userData?.email || userData?.id || 'unknown', tokenLength: authToken?.length });
+          logger.info('[Auth] Login attempt successful', { method: 'google', userId: userData?.id || 'unknown' });
 
           // Store token in both cookie and localStorage
           tokenStorage.setToken(authToken);
@@ -621,11 +622,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
           return response;
         } else {
-          console.error('[Auth] Google login failed - invalid response', null, { response });
+          logger.error('[Auth] Google login failed - invalid response');
           throw new Error("Google login failed: Invalid response");
         }
       } catch (error: any) {
-        console.error('[Auth] Google login error', error, {
+        logger.error('[Auth] Google login error', {
           message: error.message,
           code: error.code,
           status: error.status,
@@ -649,7 +650,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    */
   const loginWithChabadOrg = useCallback(
     async (key: string, siteId: string | null = null) => {
-      console.info('[Auth] Attempting Chabad.org login', { keyPreview: key?.substring(0, 10) + '...', siteId });
+      logger.info('[Auth] Attempting Chabad.org login', { siteId });
       updateAuthState({ isLoading: true, error: null });
 
       try {
@@ -657,11 +658,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
           key,
           siteId,
         });
-        console.debug('[Auth] Chabad.org login response received', { response });
+        logger.debug('[Auth] Chabad.org login response received', { success: response.success, hasToken: !!response.token, hasUser: !!response.user });
 
         if (response.success && response.token) {
           const { token: authToken, user: userData } = response;
-          console.log('[Auth] Login attempt successful', { method: 'chabad.org', identifier: userData?.email || userData?.id || 'unknown', tokenLength: authToken?.length });
+          logger.info('[Auth] Login attempt successful', { method: 'chabad.org', userId: userData?.id || 'unknown' });
 
           // Store token in both cookie and localStorage
           tokenStorage.setToken(authToken);
@@ -683,11 +684,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
           return response;
         } else {
-          console.error('[Auth] Chabad.org login failed - invalid response', null, { response });
+          logger.error('[Auth] Chabad.org login failed - invalid response');
           throw new Error("Chabad.org login failed: Invalid response");
         }
       } catch (error: any) {
-        console.error('[Auth] Chabad.org login error', error, {
+        logger.error('[Auth] Chabad.org login error', {
           message: error.message,
           code: error.code,
           status: error.status,
@@ -721,11 +722,11 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    * @returns User data if successful, null otherwise (never throws)
    */
   const loginWithCDSSO = useCallback(async () => {
-    console.info('[Auth] Attempting CDSSO login (passive)');
+    logger.info('[Auth] Attempting CDSSO login (passive)');
 
     // CDSSO is optional - if not configured, skip silently
     if (!cdssoUtils) {
-      console.debug('[Auth] CDSSO not configured, skipping');
+      logger.debug('[Auth] CDSSO not configured, skipping');
       updateAuthState({ isLoading: false, isInitialized: true });
       return null;
     }
@@ -736,7 +737,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
 
       if (!token) {
         // User not logged into id.merkos302.com - this is OK, fail silently
-        console.debug('[CDSSO] No remote session found (user not logged into id.merkos302.com)');
+        logger.debug('[CDSSO] No remote session found (user not logged into id.merkos302.com)');
 
         // Wait for initializeAuth() to complete if it's still running
         // This prevents the race where CDSSO fails quickly while initializeAuth is still verifying
@@ -754,14 +755,14 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
         return null;
       }
 
-      console.debug('[CDSSO] Token retrieved from remote session', { tokenLength: token.length });
+      logger.debug('[CDSSO] Token retrieved from remote session');
 
       // Step 2: Validate token with portal backend
       const user = await cdssoUtils.applyTokenToPortal(token);
 
       if (!user) {
         // Token validation failed - log but don't block
-        console.warn('[CDSSO] Token validation failed');
+        logger.warn('[CDSSO] Token validation failed');
 
         // Wait for initializeAuth() to complete if it's still running
         let attempts = 0;
@@ -778,7 +779,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
         return null;
       }
 
-      console.log('[Auth] Login attempt successful', { method: 'cdsso', identifier: user.email || user.id || 'unknown', tokenLength: token.length });
+      logger.info('[Auth] Login attempt successful', { method: 'cdsso', userId: user.id || 'unknown' });
 
       // Step 3: Store token (same as bearer token login)
       tokenStorage.setToken(token);
@@ -798,12 +799,12 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
         merkosTokenVerified: true,
       });
 
-      console.info('[CDSSO] Login successful', { userId: user.id, email: user.email });
+      logger.info('[CDSSO] Login successful', { userId: user.id });
       return { success: true, user, token };
 
     } catch (error: any) {
       // CDSSO failed - log but DON'T block the site or prompt user
-      console.debug('[CDSSO] Attempt failed (non-blocking)', {
+      logger.debug('[CDSSO] Attempt failed (non-blocking)', {
         message: error.message,
         timestamp: new Date().toISOString()
       });
@@ -832,15 +833,15 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
       // Call logout API if authenticated
       if (currentState.isAuthenticated && currentState.token) {
         try {
-          console.info('[Auth] Attempting logout', { userId: currentState.user?.id });
+          logger.info('[Auth] Attempting logout', { userId: currentState.user?.id });
           const response = await apiAdapter.v2Request("auth", "auth:logout", {});
-          console.debug('[Auth] Logout response received', { response });
-        } catch (err) {
-          console.warn('[Auth] Logout API error', err);
+          logger.debug('[Auth] Logout response received', { success: response.success });
+        } catch (err: any) {
+          logger.warn('[Auth] Logout API error', { error: err.message });
         }
       }
-    } catch (error) {
-      console.error('[Auth] Logout error', error);
+    } catch (error: any) {
+      logger.error('[Auth] Logout error', { error: error.message });
     }
 
     // Always clear local state
@@ -879,10 +880,9 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    * IMPORTANT: This preserves existing Merkos token if present
    */
   const setValuUser = useCallback((user: any) => {
-    console.info('[Auth] Setting Valu user data', {
+    logger.info('[Auth] Setting Valu user data', {
       userId: user?.id,
       valuUserId: user?.valuUserId,
-      displayName: user?.displayName,
       preservingMerkosToken: !!authStateRef.current.hasMerkosBearerToken
     });
 
@@ -929,7 +929,7 @@ export const AuthProvider = ({ children, config }: AuthProviderProps) => {
    * Clear Valu user data
    */
   const clearValuUser = useCallback(() => {
-    console.info('[Auth] Clearing Valu user data');
+    logger.info('[Auth] Clearing Valu user data');
 
     updateAuthState({
       isAuthenticated: false,

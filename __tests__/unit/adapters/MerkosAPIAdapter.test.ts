@@ -367,33 +367,221 @@ describe('MerkosAPIAdapter', () => {
   // ============================================================================
 
   describe('loginWithBearerToken', () => {
-    it('should throw not implemented error', async () => {
-      await expect(adapter.loginWithBearerToken('test-token')).rejects.toThrow(
-        'Not implemented'
+    it('should authenticate with bearer token and store token', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@test.com', name: 'Test User' },
+        token: 'new-jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await adapter.loginWithBearerToken('test-token');
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:bearer:login',
+            params: { token: 'test-token' },
+          }),
+        })
+      );
+    });
+
+    it('should include siteId when provided', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@test.com' },
+        token: 'jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      await adapter.loginWithBearerToken('test-token', 'site123');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:bearer:login',
+            params: { token: 'test-token', siteId: 'site123' },
+          }),
+        })
       );
     });
   });
 
   describe('loginWithCredentials', () => {
-    it('should throw not implemented error', async () => {
-      await expect(
-        adapter.loginWithCredentials('user@test.com', 'password')
-      ).rejects.toThrow('Not implemented');
+    it('should authenticate with credentials and store token', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@test.com', name: 'Test User' },
+        token: 'new-jwt-token',
+        expiresIn: 3600,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await adapter.loginWithCredentials('user@test.com', 'password');
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:username:login',
+            params: { username: 'user@test.com', password: 'password' },
+          }),
+        })
+      );
+    });
+
+    it('should include siteId when provided', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@test.com' },
+        token: 'jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      await adapter.loginWithCredentials('user@test.com', 'password', 'site123');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:username:login',
+            params: { username: 'user@test.com', password: 'password', siteId: 'site123' },
+          }),
+        })
+      );
     });
   });
 
   describe('loginWithGoogle', () => {
-    it('should throw not implemented error', async () => {
-      await expect(adapter.loginWithGoogle('google-code')).rejects.toThrow(
-        'Not implemented'
+    it('should authenticate with Google OAuth code and store token', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@gmail.com', name: 'Google User' },
+        token: 'google-jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await adapter.loginWithGoogle('google-oauth-code');
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:google:login',
+            params: { code: 'google-oauth-code' },
+          }),
+        })
+      );
+    });
+
+    it('should include host and siteId when provided', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'user@gmail.com' },
+        token: 'jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      await adapter.loginWithGoogle('google-code', 'myapp.com', 'site123');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:google:login',
+            params: { code: 'google-code', host: 'myapp.com', siteId: 'site123' },
+          }),
+        })
       );
     });
   });
 
   describe('loginWithChabadOrg', () => {
-    it('should throw not implemented error', async () => {
-      await expect(adapter.loginWithChabadOrg('chabad-token')).rejects.toThrow(
-        'Not implemented'
+    it('should authenticate with Chabad.org SSO key and store token', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'rabbi@chabad.org', name: 'Chabad User' },
+        token: 'chabad-jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await adapter.loginWithChabadOrg('chabad-sso-key');
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:chabadorg:login',
+            params: { key: 'chabad-sso-key' },
+          }),
+        })
+      );
+    });
+
+    it('should include siteId when provided', async () => {
+      const mockResponse = {
+        user: { id: '1', email: 'rabbi@chabad.org' },
+        token: 'jwt-token',
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      await adapter.loginWithChabadOrg('chabad-key', 'site123');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://org.merkos302.com/api/v2',
+        expect.objectContaining({
+          body: JSON.stringify({
+            service: 'auth',
+            path: 'auth:chabadorg:login',
+            params: { key: 'chabad-key', siteId: 'site123' },
+          }),
+        })
       );
     });
   });
@@ -461,12 +649,8 @@ describe('MerkosAPIAdapter', () => {
   });
 
   describe('error handling', () => {
-    it('should handle all authentication methods consistently', async () => {
+    it('should handle unimplemented methods consistently', async () => {
       const methods = [
-        () => adapter.loginWithBearerToken('token'),
-        () => adapter.loginWithCredentials('user', 'pass'),
-        () => adapter.loginWithGoogle('code'),
-        () => adapter.loginWithChabadOrg('token'),
         () => adapter.loginWithCDSSO(),
         () => adapter.getCurrentUser(),
         () => adapter.refreshToken('token'),
@@ -475,6 +659,513 @@ describe('MerkosAPIAdapter', () => {
       for (const method of methods) {
         await expect(method()).rejects.toThrow('Not implemented');
       }
+    });
+
+    it('should handle authentication errors for implemented methods', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          err: 'Invalid credentials',
+          code: 'INVALID_CREDENTIALS',
+        }),
+      });
+
+      await expect(adapter.loginWithBearerToken('invalid-token')).rejects.toThrow(AuthError);
+      await expect(adapter.loginWithCredentials('user', 'wrong')).rejects.toThrow(AuthError);
+      await expect(adapter.loginWithGoogle('invalid-code')).rejects.toThrow(AuthError);
+      await expect(adapter.loginWithChabadOrg('invalid-key')).rejects.toThrow(AuthError);
+    });
+  });
+
+  // ============================================================================
+  // AUTHENTICATION METHODS TESTS: Phase 5B
+  // ============================================================================
+
+  describe('Authentication Methods (Phase 5B)', () => {
+    describe('loginWithBearerToken', () => {
+      it('should authenticate with valid bearer token', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '123', email: 'test@test.com', name: 'Test User' },
+          token: 'jwt-token-xyz',
+        };
+
+        // Mock v2Request
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+
+        // Mock setToken
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithBearerToken('bearer-token-123');
+
+        expect(result).toEqual(mockResponse);
+        expect(setTokenSpy).toHaveBeenCalledWith('jwt-token-xyz');
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:bearer:login',
+          { token: 'bearer-token-123' }
+        );
+      });
+
+      it('should return AuthResponse with user and token', async () => {
+        const mockResponse: AuthResponse = {
+          user: {
+            id: '456',
+            email: 'user@example.com',
+            name: 'John Doe',
+            role: 'admin'
+          },
+          token: 'jwt-token-abc',
+          refreshToken: 'refresh-token-xyz',
+          expiresIn: 3600
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithBearerToken('bearer-token-456');
+
+        expect(result.user).toEqual(mockResponse.user);
+        expect(result.token).toBe('jwt-token-abc');
+        expect(result.refreshToken).toBe('refresh-token-xyz');
+        expect(result.expiresIn).toBe(3600);
+      });
+
+      it('should include siteId in params when provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '789', email: 'site@test.com' },
+          token: 'jwt-token-site',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithBearerToken('bearer-token-789', 'site-123');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:bearer:login',
+          { token: 'bearer-token-789', siteId: 'site-123' }
+        );
+      });
+
+      it('should NOT include siteId in params when not provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '999', email: 'nosite@test.com' },
+          token: 'jwt-token-nosite',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithBearerToken('bearer-token-999');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:bearer:login',
+          { token: 'bearer-token-999' }
+        );
+      });
+
+      it('should throw AuthError on invalid token', async () => {
+        const authError = new AuthError(
+          'Invalid bearer token',
+          AuthErrorCode.TOKEN_INVALID
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithBearerToken('invalid-token')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+
+      it('should throw AuthError on network failure', async () => {
+        const networkError = new AuthError(
+          'Network error: Connection refused',
+          AuthErrorCode.NETWORK_ERROR
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(networkError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithBearerToken('bearer-token-fail')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('loginWithCredentials', () => {
+      it('should authenticate with valid username and password', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '123', email: 'user@test.com', name: 'Test User' },
+          token: 'jwt-token-credentials',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithCredentials('user@test.com', 'password123');
+
+        expect(result).toEqual(mockResponse);
+        expect(setTokenSpy).toHaveBeenCalledWith('jwt-token-credentials');
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:username:login',
+          { username: 'user@test.com', password: 'password123' }
+        );
+      });
+
+      it('should return AuthResponse with user and token', async () => {
+        const mockResponse: AuthResponse = {
+          user: {
+            id: '456',
+            email: 'admin@example.com',
+            name: 'Admin User',
+            role: 'admin',
+            permissions: ['read', 'write', 'delete']
+          },
+          token: 'jwt-token-admin',
+          expiresIn: 7200
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithCredentials('admin@example.com', 'admin123');
+
+        expect(result.user.role).toBe('admin');
+        expect(result.user.permissions).toContain('write');
+        expect(result.token).toBe('jwt-token-admin');
+      });
+
+      it('should include siteId in params when provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '789', email: 'site@test.com' },
+          token: 'jwt-token-site',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithCredentials('site@test.com', 'sitepass', 'site-456');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:username:login',
+          { username: 'site@test.com', password: 'sitepass', siteId: 'site-456' }
+        );
+      });
+
+      it('should NOT include siteId in params when not provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '999', email: 'nosite@test.com' },
+          token: 'jwt-token-nosite',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithCredentials('nosite@test.com', 'pass123');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:username:login',
+          { username: 'nosite@test.com', password: 'pass123' }
+        );
+      });
+
+      it('should throw AuthError on invalid credentials', async () => {
+        const authError = new AuthError(
+          'Invalid username or password',
+          AuthErrorCode.INVALID_CREDENTIALS
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithCredentials('wrong@test.com', 'wrongpass')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+
+      it('should NOT call setToken on authentication failure', async () => {
+        const authError = new AuthError(
+          'Authentication failed',
+          AuthErrorCode.UNAUTHORIZED
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithCredentials('user@test.com', 'wrongpass')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('loginWithGoogle', () => {
+      it('should authenticate with valid Google OAuth code', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '123', email: 'google@test.com', name: 'Google User' },
+          token: 'jwt-token-google',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithGoogle('google-code-123');
+
+        expect(result).toEqual(mockResponse);
+        expect(setTokenSpy).toHaveBeenCalledWith('jwt-token-google');
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:google:login',
+          { code: 'google-code-123' }
+        );
+      });
+
+      it('should return AuthResponse with user and token', async () => {
+        const mockResponse: AuthResponse = {
+          user: {
+            id: '456',
+            email: 'googleuser@gmail.com',
+            name: 'Google Test User'
+          },
+          token: 'jwt-token-google-456',
+          refreshToken: 'refresh-google-456'
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithGoogle('google-code-456');
+
+        expect(result.user.email).toBe('googleuser@gmail.com');
+        expect(result.token).toBe('jwt-token-google-456');
+        expect(result.refreshToken).toBe('refresh-google-456');
+      });
+
+      it('should include host in params when provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '789', email: 'host@test.com' },
+          token: 'jwt-token-host',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithGoogle('google-code-789', 'https://app.example.com');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:google:login',
+          { code: 'google-code-789', host: 'https://app.example.com' }
+        );
+      });
+
+      it('should include both host and siteId when provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '999', email: 'both@test.com' },
+          token: 'jwt-token-both',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithGoogle('google-code-999', 'https://app.example.com', 'site-789');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:google:login',
+          { code: 'google-code-999', host: 'https://app.example.com', siteId: 'site-789' }
+        );
+      });
+
+      it('should NOT include host or siteId when not provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '111', email: 'none@test.com' },
+          token: 'jwt-token-none',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithGoogle('google-code-111');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:google:login',
+          { code: 'google-code-111' }
+        );
+      });
+
+      it('should throw AuthError on invalid Google code', async () => {
+        const authError = new AuthError(
+          'Invalid Google OAuth code',
+          AuthErrorCode.INVALID_CREDENTIALS
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithGoogle('invalid-google-code')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+
+      it('should NOT call setToken on network failure', async () => {
+        const networkError = new AuthError(
+          'Network error: Unable to reach Google',
+          AuthErrorCode.NETWORK_ERROR
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(networkError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithGoogle('google-code-fail')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('loginWithChabadOrg', () => {
+      it('should authenticate with valid Chabad.org SSO key', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '123', email: 'chabad@test.com', name: 'Chabad User' },
+          token: 'jwt-token-chabad',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithChabadOrg('chabad-key-123');
+
+        expect(result).toEqual(mockResponse);
+        expect(setTokenSpy).toHaveBeenCalledWith('jwt-token-chabad');
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:chabadorg:login',
+          { key: 'chabad-key-123' }
+        );
+      });
+
+      it('should return AuthResponse with user and token', async () => {
+        const mockResponse: AuthResponse = {
+          user: {
+            id: '456',
+            email: 'rabbi@chabad.org',
+            name: 'Rabbi Cohen',
+            role: 'rabbi'
+          },
+          token: 'jwt-token-rabbi',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        const result = await adapter.loginWithChabadOrg('chabad-key-456');
+
+        expect(result.user.name).toBe('Rabbi Cohen');
+        expect(result.user.role).toBe('rabbi');
+        expect(result.token).toBe('jwt-token-rabbi');
+      });
+
+      it('should include siteId in params when provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '789', email: 'site@chabad.org' },
+          token: 'jwt-token-site',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithChabadOrg('chabad-key-789', 'site-321');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:chabadorg:login',
+          { key: 'chabad-key-789', siteId: 'site-321' }
+        );
+      });
+
+      it('should NOT include siteId in params when not provided', async () => {
+        const mockResponse: AuthResponse = {
+          user: { id: '999', email: 'nosite@chabad.org' },
+          token: 'jwt-token-nosite',
+        };
+
+        jest.spyOn(adapter as any, 'v2Request').mockResolvedValueOnce(mockResponse);
+        jest.spyOn(adapter, 'setToken');
+
+        await adapter.loginWithChabadOrg('chabad-key-999');
+
+        expect(adapter['v2Request']).toHaveBeenCalledWith(
+          'auth',
+          'auth:chabadorg:login',
+          { key: 'chabad-key-999' }
+        );
+      });
+
+      it('should throw AuthError on invalid Chabad.org key', async () => {
+        const authError = new AuthError(
+          'Invalid Chabad.org SSO key',
+          AuthErrorCode.TOKEN_INVALID
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithChabadOrg('invalid-chabad-key')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+
+      it('should throw AuthError on unauthorized access', async () => {
+        const authError = new AuthError(
+          'Unauthorized Chabad.org access',
+          AuthErrorCode.UNAUTHORIZED
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithChabadOrg('unauthorized-key')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+
+      it('should NOT call setToken on authentication failure', async () => {
+        const authError = new AuthError(
+          'Authentication failed',
+          AuthErrorCode.FORBIDDEN
+        );
+
+        jest.spyOn(adapter as any, 'v2Request').mockRejectedValueOnce(authError);
+        const setTokenSpy = jest.spyOn(adapter, 'setToken');
+
+        await expect(
+          adapter.loginWithChabadOrg('forbidden-key')
+        ).rejects.toThrow(AuthError);
+
+        expect(setTokenSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });

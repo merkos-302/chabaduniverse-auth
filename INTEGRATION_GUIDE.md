@@ -385,11 +385,18 @@ const authConfig = {
 };
 ```
 
-### 4. Authentication with Multiple Methods
+### 4. Authentication with Multiple Methods (Phase 5B Complete)
+
+The `MerkosAPIAdapter` now supports four complete authentication methods:
 
 ```typescript
 function MultiMethodAuth() {
-  const { loginWithBearerToken, loginWithCredentials, loginWithGoogle } = useAuth();
+  const {
+    loginWithBearerToken,
+    loginWithCredentials,
+    loginWithGoogle,
+    loginWithChabadOrg
+  } = useAuth();
 
   const handleBearerLogin = async (token: string) => {
     await loginWithBearerToken(token);
@@ -403,11 +410,16 @@ function MultiMethodAuth() {
     await loginWithGoogle(code);
   };
 
+  const handleChabadOrgLogin = async (key: string) => {
+    await loginWithChabadOrg(key);
+  };
+
   return (
     <div>
       <BearerTokenForm onSubmit={handleBearerLogin} />
       <CredentialsForm onSubmit={handleCredentialsLogin} />
       <GoogleLoginButton onClick={handleGoogleLogin} />
+      <ChabadOrgSSOButton onClick={handleChabadOrgLogin} />
     </div>
   );
 }
@@ -439,6 +451,53 @@ adapter.setToken('your-jwt-token');
 
 // Clear token on logout
 adapter.clearToken();
+```
+
+### Authentication Methods (Phase 5B - Completed)
+
+The adapter now provides four complete authentication methods:
+
+#### 1. Bearer Token Authentication
+
+```typescript
+const response = await adapter.loginWithBearerToken('your-jwt-token', 'optional-site-id');
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+#### 2. Credentials Authentication
+
+```typescript
+const response = await adapter.loginWithCredentials(
+  'user@example.com',
+  'password123',
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+#### 3. Google OAuth Authentication
+
+```typescript
+const response = await adapter.loginWithGoogle(
+  'google-auth-code',
+  'https://yourdomain.com',  // optional redirect host
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+#### 4. Chabad.org SSO Authentication
+
+```typescript
+const response = await adapter.loginWithChabadOrg(
+  'chabad-org-sso-key',
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
 ```
 
 #### 2. Making v2 API Requests
@@ -565,8 +624,13 @@ const devAdapter = new MerkosAPIAdapter({
 - `clearToken(): void` - Token cleanup
 - `v2Request<T>(service, path, params): Promise<T>` - Core API request method
 
+**Phase 5B (✅ Completed):**
+- `loginWithBearerToken(token, siteId?): Promise<AuthResponse>` - Bearer token authentication
+- `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
+- `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
+- `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+
 **Coming in Future Phases:**
-- Phase 5B: Authentication methods (loginWithCredentials, loginWithGoogle, etc.)
 - Phase 5C: User info retrieval (getCurrentUser)
 - Phase 5D: Token refresh and verification
 - Phase 5E: Integration with Universe Portal Auth API

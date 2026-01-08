@@ -2,7 +2,7 @@
 
 > Complete guide for testing the @chabaduniverse/auth library
 
-**✅ UPDATED:** Phase 5A core infrastructure complete with 273 tests passing
+**✅ UPDATED:** Phase 5B authentication methods complete with 304 tests passing
 
 ## 🧪 Testing Guide
 
@@ -18,7 +18,7 @@ npm test
 
 **Expected Results:**
 - ✅ Build completes without errors (creates dist/esm, dist/cjs, dist/types)
-- ✅ All 273 tests pass across test suites
+- ✅ All 304 tests pass across test suites
 
 ---
 
@@ -73,6 +73,38 @@ npm test -- MerkosAPIAdapter --verbose
 8. ✅ Network error handling
 9. ✅ Timeout error handling
 10. ✅ Type-safe response parsing
+
+### 3b. **Phase 5B Testing (MerkosAPIAdapter Authentication Methods)**
+
+Phase 5B added 26 comprehensive unit tests for four authentication methods:
+
+```bash
+# Run all MerkosAPIAdapter tests (includes Phase 5A + 5B)
+npm test MerkosAPIAdapter
+
+# Run with verbose output
+npm test -- MerkosAPIAdapter --verbose
+```
+
+**Test Categories (26 tests):**
+- loginWithBearerToken() - 7 tests
+- loginWithCredentials() - 7 tests
+- loginWithGoogle() - 6 tests
+- loginWithChabadOrg() - 6 tests
+
+**Key Test Scenarios:**
+1. ✅ Bearer token authentication success
+2. ✅ Credentials authentication with username/password
+3. ✅ Google OAuth with authorization code
+4. ✅ Chabad.org SSO with key
+5. ✅ Site ID parameter support for all methods
+6. ✅ Host parameter for Google OAuth redirects
+7. ✅ Error handling for all authentication methods
+8. ✅ Token storage after successful authentication
+9. ✅ AuthResponse type validation
+10. ✅ Comprehensive error scenarios for each method
+
+**Total MerkosAPIAdapter Tests:** 46 tests (20 from Phase 5A + 26 from Phase 5B)
 
 ---
 
@@ -564,11 +596,12 @@ Manually verify these scenarios work:
 The session work is **successful** if:
 
 ✅ **Build:** `npm run build` completes without errors
-✅ **Tests:** All 156 tests pass
+✅ **Tests:** All 304 tests pass (up from 273 in Phase 5A)
 ✅ **Types:** TypeScript compilation works
 ✅ **Exports:** All components/hooks are importable
 ✅ **Integration:** Package works in a Next.js app
 ✅ **Documentation:** README and guides are complete
+✅ **Security:** No console logging of tokens (secure logger implemented)
 
 ---
 
@@ -610,29 +643,38 @@ npm install /path/to/chabaduniverse-auth-1.0.0.tgz
 
 ---
 
-## 📝 What Was Completed in Phase B
+## 📝 What Was Completed in Phase 5B
 
-### Files Extracted and Integrated
+### Authentication Methods Implemented
 
-1. ✅ **SimpleAuthContext.tsx** → `src/core/contexts/AuthContext.tsx` (859 lines)
-2. ✅ **useValuAuth.ts** → `src/core/hooks/useValuAuth.tsx` (897 lines)
-3. ✅ **AuthenticationGuard.tsx** → `src/react/components/AuthGuard.tsx` (264 lines)
-4. ✅ **BearerTokenPromptDialog.tsx** → `src/react/components/BearerTokenDialog.tsx` (415 lines)
+1. ✅ **loginWithBearerToken()** - Bearer token authentication
+2. ✅ **loginWithCredentials()** - Username/password login
+3. ✅ **loginWithGoogle()** - Google OAuth login
+4. ✅ **loginWithChabadOrg()** - Chabad.org SSO login
 
 ### Key Features Implemented
 
-- ✨ Headless component pattern for BearerTokenDialog
-- ✨ Adapter pattern for framework-agnostic core
-- ✨ Dual authentication (Valu + Merkos) support
-- ✨ Complete TypeScript type safety
-- ✨ Comprehensive test coverage (156 tests)
-- ✨ Production-ready documentation
+- ✨ Four complete authentication methods in MerkosAPIAdapter
+- ✨ 26 comprehensive unit tests for authentication
+- ✨ Secure logger utility to prevent token exposure
+- ✨ Fixed HIGH PRIORITY security issue (106 console calls replaced)
+- ✨ Site ID support for multi-tenant scenarios
+- ✨ Host parameter for OAuth redirects
+- ✨ Complete error handling for all methods
+- ✨ Type-safe AuthResponse return type
+
+### Test Results
+
+- **Total Tests:** 304 passing (up from 273 in Phase 5A)
+- **New Tests:** 26 authentication method tests
+- **Coverage:** 83.09% statements, 80% branches, 92.85% functions
+- **Security:** All token logging sanitized
 
 ### Build Output
 
-- **ESM Bundle:** `dist/esm/` (2.8s build time)
-- **CJS Bundle:** `dist/cjs/` (2s build time)
-- **Type Declarations:** `dist/types/` (102ms build time)
+- **ESM Bundle:** `dist/esm/` (production-ready)
+- **CJS Bundle:** `dist/cjs/` (production-ready)
+- **Type Declarations:** `dist/types/` (complete)
 
 ---
 
@@ -640,12 +682,12 @@ npm install /path/to/chabaduniverse-auth-1.0.0.tgz
 
 If all tests pass, the package is ready for:
 
-1. **Phase C:** Testing & Documentation Review
-2. **Phase D:** NPM Publishing
-3. **Phase E:** Migration to universe-portal
+1. **Phase 5C:** User info retrieval (getCurrentUser)
+2. **Phase 5D:** Token refresh and verification
+3. **Phase 5E:** Integration with Universe Portal Auth API
 
 ---
 
-**Last Updated:** January 2026
-**Session:** Phase B Integration - Core Auth File Extraction
-**Status:** ✅ Complete and Ready for Testing
+**Last Updated:** January 8, 2026
+**Session:** Phase 5B - MerkosAPIAdapter Authentication Methods
+**Status:** ✅ Complete with 304 Tests Passing

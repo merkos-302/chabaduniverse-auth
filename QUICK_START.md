@@ -70,22 +70,45 @@ function App({ children }) {
 
 ## 3. Use in Components (1 minute)
 
-### Simple login component
+### Simple login component with multiple authentication methods
 
 ```typescript
 import { useAuth } from '@chabaduniverse/auth/react';
 
 function LoginButton() {
-  const { loginWithBearerToken } = useAuth();
+  const {
+    loginWithBearerToken,
+    loginWithCredentials,
+    loginWithGoogle,
+    loginWithChabadOrg
+  } = useAuth();
 
-  const handleLogin = () => {
+  const handleBearerLogin = () => {
     const token = prompt('Enter bearer token:');
     if (token) {
       loginWithBearerToken(token);
     }
   };
 
-  return <button onClick={handleLogin}>Login</button>;
+  const handleCredentialsLogin = async () => {
+    const username = prompt('Enter username:');
+    const password = prompt('Enter password:');
+    if (username && password) {
+      await loginWithCredentials(username, password);
+    }
+  };
+
+  const handleGoogleLogin = async (code: string) => {
+    await loginWithGoogle(code);
+  };
+
+  return (
+    <div>
+      <button onClick={handleBearerLogin}>Login with Token</button>
+      <button onClick={handleCredentialsLogin}>Login with Credentials</button>
+      <button onClick={() => handleGoogleLogin('google-code')}>Login with Google</button>
+    </div>
+  );
 }
 ```
 
