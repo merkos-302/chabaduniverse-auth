@@ -18,7 +18,7 @@ This is a pluggable authentication library designed for the ChabadUniverse ecosy
 - **Dual Authentication**: Support for simultaneous Valu Social + Merkos Platform authentication
 - **Database Models**: MongoDB/Mongoose schemas for user profiles, preferences, activity, analytics
 - **Type-Safe**: Full TypeScript support with comprehensive type definitions
-- **Well-Tested**: Jest + React Testing Library with 80%+ test coverage target
+- **Well-Tested**: Jest + React Testing Library with 273 tests passing (93.5%+ coverage)
 
 ## Technology Stack
 
@@ -293,6 +293,16 @@ Built-in adapter for Merkos Platform API v2:
 - `identifier` header for authentication
 - Environment-based URL configuration
 
+**Phase 5A Implementation (✅ Completed - Issue #10):**
+- `setToken(token: string): void` - Token storage for authenticated requests
+- `clearToken(): void` - Token cleanup on logout
+- `v2Request<T>(service, path, params): Promise<T>` - Core v2 API request method
+- Intelligent error code mapping (Merkos errors → AuthErrorCode enum)
+- AbortController-based timeout handling
+- Type-safe generic responses
+- 20 comprehensive unit tests
+- Full JSDoc documentation
+
 ## Development Workflow: Session Management and Code Commits
 
 ### Development Flow Overview
@@ -546,6 +556,7 @@ Follow [Semantic Versioning](https://semver.org/):
 - `src/core/AuthManager.ts` - Core authentication logic
 - `src/core/TokenStorage.ts` - Token persistence
 - `src/types/auth.ts` - Core authentication types
+- `src/adapters/MerkosAPIAdapter.ts` - Merkos Platform API v2 adapter (Phase 5A)
 
 ### React Integration
 
@@ -569,6 +580,35 @@ Follow [Semantic Versioning](https://semver.org/):
 5. **Well-Tested**: Comprehensive test coverage for reliability
 6. **Developer Experience**: Clear APIs, good error messages, helpful documentation
 
+## Current Implementation Status
+
+### Phase 5A: MerkosAPIAdapter Core Infrastructure (✅ Completed - Issue #10)
+
+**Completed Methods:**
+1. `setToken(token: string): void` - Store Merkos JWT for API requests
+2. `clearToken(): void` - Clear stored token on logout
+3. `v2Request<T>(service, path, params): Promise<T>` - Core v2 API request method
+
+**Key Features:**
+- POST to unified `/api/v2` endpoint
+- Custom `identifier` header (not standard `Authorization`)
+- Intelligent error code mapping
+- AbortController-based timeout handling
+- Type-safe generic responses
+- Comprehensive error detection (API errors, network errors, timeouts)
+
+**Testing:**
+- 20 focused unit tests
+- All 273 tests passing
+- 93.5% code coverage
+- Comprehensive mocking patterns
+
+**Next Phases:**
+- Phase 5B: Authentication methods (loginWithCredentials, loginWithGoogle, etc.)
+- Phase 5C: User info retrieval (getCurrentUser)
+- Phase 5D: Token refresh and verification
+- Phase 5E: Integration with Universe Portal Auth API
+
 ## Critical Notes
 
 ### ⚠️ URL Changes (Issue #1)
@@ -577,7 +617,7 @@ The correct Merkos Platform API base URL is:
 - ✅ Correct: `https://org.merkos302.com`
 - ❌ Incorrect: `https://shop.merkos302.com`
 
-Update all references, documentation, and examples.
+**Update all references, documentation, and examples.** This has been fixed in Phase 5A.
 
 ### 🔒 Security Considerations
 

@@ -1,10 +1,10 @@
-# Testing Guide for Phase B Completion
+# Testing Guide
 
-> Complete guide to test all work completed in the Phase B integration session
+> Complete guide for testing the @chabaduniverse/auth library
 
-**✅ UPDATED:** Database models now included in build (Mongoose compatibility issues resolved)
+**✅ UPDATED:** Phase 5A core infrastructure complete with 273 tests passing
 
-## 🧪 Testing Guide for Phase B Completion
+## 🧪 Testing Guide
 
 ### 1. **Quick Verification (30 seconds)**
 
@@ -18,7 +18,7 @@ npm test
 
 **Expected Results:**
 - ✅ Build completes without errors (creates dist/esm, dist/cjs, dist/types)
-- ✅ All 156 tests pass across 10 test suites
+- ✅ All 273 tests pass across test suites
 
 ---
 
@@ -28,8 +28,12 @@ npm test
 # Run tests with coverage report
 npm test -- --coverage
 
-# Run only BearerTokenDialog tests (new component from this session)
-npm test BearerTokenDialog
+# Run specific test suites
+npm test AuthManager              # Core authentication manager tests
+npm test TokenStorage             # Token storage tests
+npm test MerkosAPIAdapter         # Merkos API adapter tests (Phase 5A)
+npm test BearerTokenDialog        # Bearer token dialog component tests
+npm test AuthProvider             # Auth provider tests
 
 # Run only integration tests
 npm test integration
@@ -37,6 +41,38 @@ npm test integration
 # Run tests in watch mode (for development)
 npm test -- --watch
 ```
+
+### 3. **Phase 5A Testing (MerkosAPIAdapter Core)**
+
+Phase 5A introduced 20 comprehensive unit tests for the MerkosAPIAdapter core infrastructure:
+
+```bash
+# Run all MerkosAPIAdapter tests
+npm test MerkosAPIAdapter
+
+# Run with verbose output
+npm test -- MerkosAPIAdapter --verbose
+```
+
+**Test Categories (20 tests):**
+- Token management (setToken, clearToken) - 6 tests
+- Successful requests - 2 tests
+- Authentication headers - 2 tests
+- Request body structure - 1 test
+- Error handling (API errors, network errors, timeouts) - 7 tests
+- Response parsing - 2 tests
+
+**Key Test Scenarios:**
+1. ✅ Token storage and retrieval
+2. ✅ Token cleared on logout
+3. ✅ POST requests to `/api/v2` endpoint
+4. ✅ Custom `identifier` header injection
+5. ✅ Request body format validation
+6. ✅ Merkos v2 error response detection
+7. ✅ HTTP status code error handling (401, 403, 404, 500, 503)
+8. ✅ Network error handling
+9. ✅ Timeout error handling
+10. ✅ Type-safe response parsing
 
 ---
 
@@ -78,7 +114,7 @@ import { MerkosAPIAdapter } from '@chabaduniverse/auth/adapters';
 import type { AppProps } from 'next/app';
 
 const merkosAdapter = new MerkosAPIAdapter({
-  baseUrl: 'https://shop.merkos302.com',
+  baseUrl: 'https://org.merkos302.com',
   apiVersion: 'v2'
 });
 
@@ -180,7 +216,101 @@ export default TestAuthPage;
 
 ---
 
-### 5. **Test Specific Components Extracted This Session**
+### 5. **Mocking Patterns**
+
+#### Mocking MerkosAPIAdapter
+
+For Phase 5A, the adapter uses `global.fetch` for HTTP requests. Mock it in your tests:
+
+```typescript
+// Mock successful v2 API request
+beforeEach(() => {
+  (global.fetch as jest.Mock) = jest.fn();
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
+it('should make authenticated v2 request', async () => {
+  const mockResponse = {
+    user: { uuid: '123', email: 'test@example.com', name: 'Test User' }
+  };
+
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true,
+    json: async () => mockResponse,
+  });
+
+  const adapter = new MerkosAPIAdapter({
+    baseUrl: 'https://org.merkos302.com',
+    apiVersion: 'v2',
+  });
+
+  adapter.setToken('test-token');
+  const result = await adapter.v2Request('auth', 'auth:user:info', {});
+
+  expect(result).toEqual(mockResponse);
+  expect(global.fetch).toHaveBeenCalledWith(
+    'https://org.merkos302.com/api/v2',
+    expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({
+        'Content-Type': 'application/json',
+        'identifier': 'test-token',
+      }),
+      body: JSON.stringify({
+        service: 'auth',
+        path: 'auth:user:info',
+        params: {},
+      }),
+    })
+  );
+});
+```
+
+#### Mocking Error Responses
+
+```typescript
+it('should handle Merkos API errors', async () => {
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ err: 'Unauthorized', code: 'AUTH_FAILED' }),
+  });
+
+  const adapter = new MerkosAPIAdapter({
+    baseUrl: 'https://org.merkos302.com',
+    apiVersion: 'v2',
+  });
+
+  await expect(
+    adapter.v2Request('auth', 'auth:user:info', {})
+  ).rejects.toThrow(AuthError);
+});
+```
+
+#### Mocking Network Errors
+
+```typescript
+it('should handle network errors', async () => {
+  (global.fetch as jest.Mock).mockRejectedValueOnce(
+    new Error('Network error')
+  );
+
+  const adapter = new MerkosAPIAdapter({
+    baseUrl: 'https://org.merkos302.com',
+    apiVersion: 'v2',
+  });
+
+  await expect(
+    adapter.v2Request('auth', 'auth:user:info', {})
+  ).rejects.toThrow(AuthError);
+});
+```
+
+---
+
+### 6. **Test Specific Components**
 
 #### A. **BearerTokenDialog** (New Headless Component)
 
@@ -348,7 +478,7 @@ import { MerkosAPIAdapter } from '@chabaduniverse/auth/adapters';
 
 // Test: Adapter creation
 const adapter = new MerkosAPIAdapter({
-  baseUrl: 'https://shop.merkos302.com',
+  baseUrl: 'https://org.merkos302.com',
   apiVersion: 'v2'
 });
 

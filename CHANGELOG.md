@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Phase 5A**: MerkosAPIAdapter core infrastructure (#10)
+  - `setToken(token: string): void` - Token storage for authenticated requests
+  - `clearToken(): void` - Token cleanup on logout
+  - `v2Request<T>(service, path, params): Promise<T>` - Core v2 API request method
+  - Merkos Platform API v2 integration with unified POST endpoint
+  - Custom `identifier` header authentication (not standard `Authorization`)
+  - Intelligent error code mapping (Merkos errors → AuthErrorCode enum)
+  - AbortController-based timeout handling
+  - Type-safe generic responses
+  - 20 comprehensive unit tests for core adapter methods
+  - Full JSDoc documentation with usage examples
+
+### Fixed
+- Corrected Merkos Platform API base URL from `shop.merkos302.com` to `org.merkos302.com` (Issue #1)
+
+### Changed
+- Updated test count from 253 to 273 tests passing
+- Enhanced MerkosAPIAdapter with production-ready error handling
+
 ## [1.0.0] - 2026-01-04
 
 ### Added

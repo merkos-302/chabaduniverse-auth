@@ -97,7 +97,7 @@ interface AuthAPIAdapter {
   refreshToken(refreshToken: string): Promise<AuthResponse>;
   logout(): Promise<void>;
   verifyToken(token: string): Promise<boolean>;
-  v2Request(service: string, path: string, params: Record<string, unknown>): Promise<any>;
+  v2Request<T>(service: string, path: string, params: Record<string, unknown>): Promise<T>;
 }
 
 // ValuAPIAdapter - Handles Valu Social integration
@@ -144,7 +144,7 @@ import { createUserService } from './services/userService';
 
 // Create adapters
 const merkosAdapter = new MerkosAPIAdapter({
-  baseUrl: 'https://shop.merkos302.com',
+  baseUrl: 'https://org.merkos302.com',
   apiVersion: 'v2',
   timeout: 30000,
 });
@@ -412,6 +412,164 @@ function MultiMethodAuth() {
   );
 }
 ```
+
+---
+
+## MerkosAPIAdapter Usage
+
+### Overview
+
+The `MerkosAPIAdapter` implements the Merkos Platform API v2 integration. Phase 5A provides the core infrastructure methods that serve as the foundation for all authentication operations.
+
+### Core Methods (Phase 5A - Completed)
+
+#### 1. Token Management
+
+```typescript
+import { MerkosAPIAdapter } from '@chabaduniverse/auth/adapters';
+
+const adapter = new MerkosAPIAdapter({
+  baseUrl: 'https://org.merkos302.com',
+  apiVersion: 'v2',
+  timeout: 30000,
+});
+
+// Store token for authenticated requests
+adapter.setToken('your-jwt-token');
+
+// Clear token on logout
+adapter.clearToken();
+```
+
+#### 2. Making v2 API Requests
+
+The `v2Request<T>()` method provides type-safe access to any Merkos Platform API v2 endpoint:
+
+```typescript
+// Example: Get user info (authenticated request)
+interface UserInfo {
+  uuid: string;
+  email: string;
+  name: string;
+  roles: string[];
+}
+
+adapter.setToken('your-jwt-token');
+const user = await adapter.v2Request<UserInfo>(
+  'auth',
+  'auth:user:info',
+  {}
+);
+
+// Example: Login with credentials (unauthenticated request)
+interface AuthResponse {
+  user: UserInfo;
+  token: string;
+  refreshToken?: string;
+}
+
+const response = await adapter.v2Request<AuthResponse>(
+  'auth',
+  'auth:username:login',
+  { username: 'user@example.com', password: 'password123' }
+);
+```
+
+### v2 API Request Structure
+
+The Merkos Platform API v2 uses a unified endpoint structure:
+
+- **Endpoint**: `POST /api/v2` (single endpoint for all requests)
+- **Headers**: `Content-Type: application/json`, `identifier: <token>` (when authenticated)
+- **Body**: `{ service: string, path: string, params: object }`
+
+#### Service Names
+- `auth` - Authentication and user management
+- `orgs` - Organization management
+- `orgcampaigns` - Campaign management
+- `orgforms` - Form builder and submissions
+
+#### Path Format
+Paths use colon-separated format: `service:resource:action`
+
+Examples:
+- `auth:username:login` - Username/password login
+- `auth:user:info` - Get current user info
+- `orgs:admin:list` - List organizations
+- `orgcampaigns:members:add` - Add campaign member
+
+### Error Handling
+
+The adapter provides comprehensive error handling with intelligent error code mapping:
+
+```typescript
+import { AuthError, AuthErrorCode } from '@chabaduniverse/auth';
+
+try {
+  const response = await adapter.v2Request('auth', 'auth:user:info', {});
+} catch (error) {
+  if (error instanceof AuthError) {
+    switch (error.code) {
+      case AuthErrorCode.INVALID_TOKEN:
+        console.log('Token is invalid or expired');
+        break;
+      case AuthErrorCode.UNAUTHORIZED:
+        console.log('Not authenticated');
+        break;
+      case AuthErrorCode.NETWORK_ERROR:
+        console.log('Network error occurred');
+        break;
+      case AuthErrorCode.TIMEOUT:
+        console.log('Request timed out');
+        break;
+      default:
+        console.log('Unknown error:', error.message);
+    }
+  }
+}
+```
+
+### Advanced Usage
+
+#### Custom Timeout
+
+```typescript
+const adapter = new MerkosAPIAdapter({
+  baseUrl: 'https://org.merkos302.com',
+  apiVersion: 'v2',
+  timeout: 60000, // 60 seconds for slow operations
+});
+```
+
+#### Multiple Adapter Instances
+
+```typescript
+// Production adapter
+const prodAdapter = new MerkosAPIAdapter({
+  baseUrl: 'https://org.merkos302.com',
+  apiVersion: 'v2',
+});
+
+// Development/testing adapter
+const devAdapter = new MerkosAPIAdapter({
+  baseUrl: 'http://localhost:3000',
+  apiVersion: 'v2',
+  timeout: 10000,
+});
+```
+
+### Implementation Status
+
+**Phase 5A (✅ Completed):**
+- `setToken(token: string): void` - Token storage
+- `clearToken(): void` - Token cleanup
+- `v2Request<T>(service, path, params): Promise<T>` - Core API request method
+
+**Coming in Future Phases:**
+- Phase 5B: Authentication methods (loginWithCredentials, loginWithGoogle, etc.)
+- Phase 5C: User info retrieval (getCurrentUser)
+- Phase 5D: Token refresh and verification
+- Phase 5E: Integration with Universe Portal Auth API
 
 ---
 
