@@ -55,6 +55,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "full": "npm i && npm run build && npm run lint && npm run type-check && npm test",
+    "new": "rm -rf dist && rm -rf node_modules && npm cache clean --force && npm run full",
     "dev": "rollup -c -w",
     "build": "npm run clean && npm run build:types && npm run build:bundle",
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",

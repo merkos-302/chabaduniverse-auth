@@ -17,7 +17,7 @@ npm install @chabaduniverse/auth
 import { MerkosAPIAdapter } from '@chabaduniverse/auth/adapters';
 
 export const merkosAdapter = new MerkosAPIAdapter({
-  baseUrl: 'https://shop.merkos302.com',
+  baseUrl: 'https://org.merkos302.com',
   apiVersion: 'v2',
 });
 ```
