@@ -262,38 +262,173 @@ export class MerkosAPIAdapter implements AuthAPIAdapter {
 
   /**
    * Login with bearer token (JWT)
+   *
+   * Authenticates with the Merkos Platform API using a pre-existing JWT bearer token.
+   * This method validates the token with the API and retrieves associated user information.
+   * Upon successful authentication, the token is stored in the adapter for subsequent requests.
+   *
+   * @param token - The JWT bearer token to authenticate with
+   * @param siteId - Optional site ID for multi-tenant authentication
+   * @returns Promise resolving to authentication response with user and token
+   * @throws {AuthError} When token is invalid, expired, or API request fails
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   * try {
+   *   const response = await adapter.loginWithBearerToken(
+   *     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+   *     'site123'
+   *   );
+   *   console.log('Authenticated as:', response.user.email);
+   * } catch (error) {
+   *   if (error instanceof AuthError && error.code === AuthErrorCode.TOKEN_EXPIRED) {
+   *     console.error('Token has expired, please login again');
+   *   }
+   * }
+   * ```
    */
-  async loginWithBearerToken(_token: string, _siteId?: string | null): Promise<AuthResponse> {
-    // TODO: Implement Merkos Platform bearer token authentication
-    // This should call the Merkos Platform API with the token
-    throw new Error('Not implemented');
+  async loginWithBearerToken(token: string, siteId?: string | null): Promise<AuthResponse> {
+    const response = await this.v2Request<AuthResponse>(
+      'auth',
+      'auth:bearer:login',
+      { token, ...(siteId && { siteId }) }
+    );
+
+    this.setToken(response.token);
+    return response;
   }
 
   /**
    * Login with username and password
+   *
+   * Authenticates with the Merkos Platform API using username/email and password credentials.
+   * This is the traditional credentials-based authentication method. Upon successful authentication,
+   * the returned JWT token is stored in the adapter for subsequent authenticated requests.
+   *
+   * @param username - User's username or email address
+   * @param password - User's password
+   * @param siteId - Optional site ID for multi-tenant authentication
+   * @returns Promise resolving to authentication response with user and token
+   * @throws {AuthError} When credentials are invalid or API request fails
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   * try {
+   *   const response = await adapter.loginWithCredentials(
+   *     'user@example.com',
+   *     'mySecurePassword123',
+   *     'site123'
+   *   );
+   *   console.log('Authenticated as:', response.user.name);
+   *   console.log('Token expires in:', response.expiresIn, 'seconds');
+   * } catch (error) {
+   *   if (error instanceof AuthError && error.code === AuthErrorCode.INVALID_CREDENTIALS) {
+   *     console.error('Invalid username or password');
+   *   }
+   * }
+   * ```
    */
-  async loginWithCredentials(_username: string, _password: string, _siteId?: string | null): Promise<AuthResponse> {
-    // TODO: Implement Merkos Platform credentials authentication
-    // Call v2Request with service: 'auth', path: 'auth:username:login'
-    throw new Error('Not implemented');
+  async loginWithCredentials(username: string, password: string, siteId?: string | null): Promise<AuthResponse> {
+    const response = await this.v2Request<AuthResponse>(
+      'auth',
+      'auth:username:login',
+      { username, password, ...(siteId && { siteId }) }
+    );
+
+    this.setToken(response.token);
+    return response;
   }
 
   /**
    * Login with Google OAuth code
+   *
+   * Authenticates with the Merkos Platform API using a Google OAuth authorization code.
+   * This method completes the OAuth flow by exchanging the authorization code for a JWT token.
+   * The authorization code is typically obtained from Google's OAuth redirect after user consent.
+   * Upon successful authentication, the returned JWT token is stored in the adapter.
+   *
+   * @param code - Google OAuth authorization code from OAuth redirect
+   * @param host - Optional host/domain for OAuth validation (e.g., 'example.com')
+   * @param siteId - Optional site ID for multi-tenant authentication
+   * @returns Promise resolving to authentication response with user and token
+   * @throws {AuthError} When OAuth code is invalid, expired, or API request fails
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   * // After user is redirected back from Google OAuth with authorization code
+   * const urlParams = new URLSearchParams(window.location.search);
+   * const code = urlParams.get('code');
+   *
+   * if (code) {
+   *   try {
+   *     const response = await adapter.loginWithGoogle(
+   *       code,
+   *       'myapp.example.com',
+   *       'site123'
+   *     );
+   *     console.log('Authenticated with Google as:', response.user.email);
+   *   } catch (error) {
+   *     if (error instanceof AuthError) {
+   *       console.error('Google OAuth failed:', error.message);
+   *     }
+   *   }
+   * }
+   * ```
    */
-  async loginWithGoogle(_code: string, _host?: string | null, _siteId?: string | null): Promise<AuthResponse> {
-    // TODO: Implement Merkos Platform Google OAuth authentication
-    // Call v2Request with service: 'auth', path: 'auth:google:login'
-    throw new Error('Not implemented');
+  async loginWithGoogle(code: string, host?: string | null, siteId?: string | null): Promise<AuthResponse> {
+    const response = await this.v2Request<AuthResponse>(
+      'auth',
+      'auth:google:login',
+      { code, ...(host && { host }), ...(siteId && { siteId }) }
+    );
+
+    this.setToken(response.token);
+    return response;
   }
 
   /**
    * Login with Chabad.org SSO token
+   *
+   * Authenticates with the Merkos Platform API using a Chabad.org Single Sign-On (SSO) key.
+   * This method enables seamless authentication for users coming from Chabad.org ecosystem.
+   * The SSO key is validated against Chabad.org's authentication system, and upon successful
+   * validation, a JWT token is issued and stored in the adapter.
+   *
+   * @param key - Chabad.org SSO authentication key
+   * @param siteId - Optional site ID for multi-tenant authentication
+   * @returns Promise resolving to authentication response with user and token
+   * @throws {AuthError} When SSO key is invalid, expired, or API request fails
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   * // After receiving SSO key from Chabad.org
+   * try {
+   *   const response = await adapter.loginWithChabadOrg(
+   *     'chabad-sso-key-abc123xyz',
+   *     'site123'
+   *   );
+   *   console.log('Authenticated via Chabad.org SSO:', response.user.name);
+   *   console.log('User permissions:', response.user.permissions);
+   * } catch (error) {
+   *   if (error instanceof AuthError && error.code === AuthErrorCode.TOKEN_INVALID) {
+   *     console.error('Invalid or expired Chabad.org SSO key');
+   *   }
+   * }
+   * ```
    */
-  async loginWithChabadOrg(_key: string, _siteId?: string | null): Promise<AuthResponse> {
-    // TODO: Implement Chabad.org SSO authentication
-    // Call v2Request with service: 'auth', path: 'auth:chabadorg:login'
-    throw new Error('Not implemented');
+  async loginWithChabadOrg(key: string, siteId?: string | null): Promise<AuthResponse> {
+    const response = await this.v2Request<AuthResponse>(
+      'auth',
+      'auth:chabadorg:login',
+      { key, ...(siteId && { siteId }) }
+    );
+
+    this.setToken(response.token);
+    return response;
   }
 
   /**

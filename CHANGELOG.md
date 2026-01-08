@@ -20,12 +20,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 20 comprehensive unit tests for core adapter methods
   - Full JSDoc documentation with usage examples
 
+- **Phase 5B**: MerkosAPIAdapter authentication methods
+  - `loginWithBearerToken(token, siteId?): Promise<AuthResponse>` - Bearer token authentication
+  - `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
+  - `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
+  - `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+  - 26 comprehensive unit tests for authentication methods
+  - Secure logger utility (src/core/utils/logger.ts) to prevent token exposure
+  - Complete error handling for all authentication methods
+  - Site ID support for multi-tenant scenarios
+
 ### Fixed
 - Corrected Merkos Platform API base URL from `shop.merkos302.com` to `org.merkos302.com` (Issue #1)
+- **HIGH PRIORITY**: Fixed console logging security vulnerability - replaced 106 console calls with secure logger
 
 ### Changed
-- Updated test count from 253 to 273 tests passing
+- Updated test count from 253 to 273 tests passing (Phase 5A)
+- Updated test count from 273 to 304 tests passing (Phase 5B)
 - Enhanced MerkosAPIAdapter with production-ready error handling
+- Test coverage: 83.09% statements, 80% branches, 92.85% functions
 
 ## [1.0.0] - 2026-01-04
 

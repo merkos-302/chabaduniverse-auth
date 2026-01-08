@@ -15,9 +15,9 @@ The @chabaduniverse/auth library uses the Adapter Pattern to decouple authentica
 
 ### MerkosAPIAdapter
 
-**Status**: Phase 5A Core Infrastructure ✅ Completed
+**Status**: Phase 5A ✅ Completed | Phase 5B ✅ Completed
 
-The `MerkosAPIAdapter` implements authentication for the Merkos Platform API v2. It provides a foundation for all Merkos-based authentication operations.
+The `MerkosAPIAdapter` implements authentication for the Merkos Platform API v2. It provides a complete foundation for all Merkos-based authentication operations.
 
 #### Configuration
 
@@ -52,6 +52,51 @@ const response = await adapter.v2Request<ResponseType>(
   'path',         // Service path: 'auth:username:login', 'auth:user:info', etc.
   { /* params */ } // Request parameters
 );
+```
+
+#### Authentication Methods (Phase 5B)
+
+**1. Bearer Token Authentication**
+
+```typescript
+const response = await adapter.loginWithBearerToken('your-jwt-token', 'optional-site-id');
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+**2. Credentials Authentication**
+
+```typescript
+const response = await adapter.loginWithCredentials(
+  'user@example.com',
+  'password123',
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+**3. Google OAuth Authentication**
+
+```typescript
+const response = await adapter.loginWithGoogle(
+  'google-auth-code',
+  'https://yourdomain.com',  // optional redirect host
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
+```
+
+**4. Chabad.org SSO Authentication**
+
+```typescript
+const response = await adapter.loginWithChabadOrg(
+  'chabad-org-sso-key',
+  'optional-site-id'
+);
+console.log('User:', response.user);
+console.log('Token:', response.token);
 ```
 
 #### Features
@@ -258,8 +303,16 @@ it('should make v2 request', async () => {
 - ✅ 20 unit tests
 - ✅ Full JSDoc documentation
 
+**Phase 5B (✅ Completed):**
+- ✅ `loginWithBearerToken(token, siteId?): Promise<AuthResponse>` - Bearer token authentication
+- ✅ `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
+- ✅ `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
+- ✅ `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+- ✅ 26 comprehensive unit tests
+- ✅ Secure logger utility (prevents token exposure)
+- ✅ Fixed HIGH PRIORITY security issue
+
 **Future Phases:**
-- Phase 5B: Authentication methods (loginWithCredentials, loginWithGoogle, etc.)
 - Phase 5C: User management (getCurrentUser, refreshToken, verifyToken)
 - Phase 5D: Additional Merkos API v2 endpoints
 - Phase 5E: Integration with Universe Portal Auth API

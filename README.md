@@ -15,7 +15,7 @@
 - 🔒 **Type-Safe**: Full TypeScript support with comprehensive type definitions
 - 🎨 **Headless Components**: UI-library independent with render props
 - 📦 **Tree-Shakeable**: Modular design for optimal bundle sizes
-- 🧪 **Well Tested**: Comprehensive test suite with 273 tests passing (93.5%+ coverage)
+- 🧪 **Well Tested**: Comprehensive test suite with 304 tests passing (83%+ coverage)
 - 📚 **Fully Documented**: Complete API documentation and integration guides
 
 ## Installation
@@ -244,6 +244,12 @@ const adapter = new MerkosAPIAdapter({
 - ✅ `clearToken(): void` - Token cleanup on logout
 - ✅ `v2Request<T>(service, path, params): Promise<T>` - Core v2 API request method
 
+**Phase 5B Implementation (Completed):**
+- ✅ `loginWithBearerToken(token, siteId?): Promise<AuthResponse>` - Bearer token authentication
+- ✅ `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
+- ✅ `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
+- ✅ `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+
 **Features:**
 - Unified POST `/api/v2` endpoint for all requests
 - Custom `identifier` header for authentication (not `Authorization`)
@@ -251,6 +257,7 @@ const adapter = new MerkosAPIAdapter({
 - AbortController-based timeout handling
 - Type-safe generic responses
 - Comprehensive error detection (API errors, network errors, timeouts)
+- Four complete authentication methods with full error handling
 
 ### Database Models
 

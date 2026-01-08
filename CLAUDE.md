@@ -18,7 +18,7 @@ This is a pluggable authentication library designed for the ChabadUniverse ecosy
 - **Dual Authentication**: Support for simultaneous Valu Social + Merkos Platform authentication
 - **Database Models**: MongoDB/Mongoose schemas for user profiles, preferences, activity, analytics
 - **Type-Safe**: Full TypeScript support with comprehensive type definitions
-- **Well-Tested**: Jest + React Testing Library with 273 tests passing (93.5%+ coverage)
+- **Well-Tested**: Jest + React Testing Library with 304 tests passing (83%+ coverage)
 
 ## Technology Stack
 
@@ -603,8 +603,33 @@ Follow [Semantic Versioning](https://semver.org/):
 - 93.5% code coverage
 - Comprehensive mocking patterns
 
+### Phase 5B: MerkosAPIAdapter Authentication Methods (✅ Completed)
+
+**Completed Methods:**
+1. `loginWithBearerToken(token, siteId?): Promise<AuthResponse>` - Bearer token authentication
+2. `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
+3. `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
+4. `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+
+**Key Features:**
+- Four complete authentication methods
+- Full error handling for all methods
+- Type-safe AuthResponse return type
+- Site ID support for multi-tenant scenarios
+- Host parameter for OAuth redirects
+
+**Testing:**
+- 26 comprehensive unit tests for authentication methods
+- All 304 tests passing (up from 273)
+- Test coverage: 83.09% statements, 80% branches, 92.85% functions
+- Comprehensive error scenario testing
+
+**Security Improvements:**
+- Created secure logger utility (src/core/utils/logger.ts)
+- Replaced 106 console calls with secure logging
+- Fixed HIGH PRIORITY security issue (token exposure prevention)
+
 **Next Phases:**
-- Phase 5B: Authentication methods (loginWithCredentials, loginWithGoogle, etc.)
 - Phase 5C: User info retrieval (getCurrentUser)
 - Phase 5D: Token refresh and verification
 - Phase 5E: Integration with Universe Portal Auth API
