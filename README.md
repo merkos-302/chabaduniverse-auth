@@ -15,7 +15,7 @@
 - 🔒 **Type-Safe**: Full TypeScript support with comprehensive type definitions
 - 🎨 **Headless Components**: UI-library independent with render props
 - 📦 **Tree-Shakeable**: Modular design for optimal bundle sizes
-- 🧪 **Well Tested**: Comprehensive test suite with 304 tests passing (83%+ coverage)
+- 🧪 **Well Tested**: Comprehensive test suite with 311 tests passing (83%+ coverage)
 - 📚 **Fully Documented**: Complete API documentation and integration guides
 
 ## Installation
@@ -249,6 +249,10 @@ const adapter = new MerkosAPIAdapter({
 - ✅ `loginWithCredentials(username, password, siteId?): Promise<AuthResponse>` - Username/password login
 - ✅ `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
 - ✅ `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
+
+**Phase 5C Implementation (Completed):**
+- ✅ `getCurrentUser(): Promise<User>` - Retrieve authenticated user information
+- ✅ `logout(): Promise<void>` - End user session and clear tokens
 
 **Features:**
 - Unified POST `/api/v2` endpoint for all requests

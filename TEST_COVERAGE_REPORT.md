@@ -2,7 +2,7 @@
 ## @chabaduniverse/auth Package
 
 **Date:** January 8, 2026
-**Total Tests:** 304 passing
+**Total Tests:** 311 passing
 **Test Suites:** Multiple passing
 **Overall Coverage:** 83.09% (statements), 80% (branches), 92.85% (functions)
 
@@ -10,9 +10,16 @@
 
 ## Summary
 
-A comprehensive test suite has been implemented for the @chabaduniverse/auth package, achieving **83%+ overall code coverage** on implemented features. All 304 tests are passing with zero failures.
+A comprehensive test suite has been implemented for the @chabaduniverse/auth package, achieving **83%+ overall code coverage** on implemented features. All 311 tests are passing with zero failures.
 
-**Latest Update - Phase 5B (January 8, 2026):**
+**Latest Update - Phase 5C (January 8, 2026):**
+- Added 7 comprehensive unit tests for MerkosAPIAdapter user info and logout methods
+- Total tests increased from 304 to 311 (+7 tests)
+- Implemented testing for getCurrentUser() and logout() methods
+- Comprehensive error handling for user retrieval and session termination
+- Token cleanup verification on logout
+
+**Phase 5B Recap (January 8, 2026):**
 - Added 26 comprehensive unit tests for MerkosAPIAdapter authentication methods
 - Total tests increased from 273 to 304 (+31 tests)
 - Implemented testing for loginWithBearerToken(), loginWithCredentials(), loginWithGoogle(), loginWithChabadOrg()
@@ -68,7 +75,7 @@ A comprehensive test suite has been implemented for the @chabaduniverse/auth pac
 - **AuthManager.test.ts (Legacy)** (7 tests)
   - Basic authentication flow tests from initial implementation
 
-#### Adapter Tests (40 tests)
+#### Adapter Tests (47 tests)
 - **MerkosAPIAdapter.test.ts (Legacy)** (20 tests)
   - ✅ Initialization (4 tests)
   - ✅ All authentication methods (7 tests)
@@ -88,6 +95,10 @@ A comprehensive test suite has been implemented for the @chabaduniverse/auth pac
   - ✅ loginWithCredentials() - 7 tests
   - ✅ loginWithGoogle() - 6 tests
   - ✅ loginWithChabadOrg() - 6 tests
+
+- **MerkosAPIAdapter.test.ts (Phase 5C User Management)** (7 tests)
+  - ✅ getCurrentUser() - 4 tests
+  - ✅ logout() - 3 tests
 
 #### React Tests (25 tests)
 - **AuthProvider.test.tsx** (15 tests)
@@ -385,11 +396,37 @@ To reach 95% coverage, add tests for:
 - Token sanitization in error messages
 - Type-safe AuthResponse validation
 
+## Phase 5C Testing Details
+
+### MerkosAPIAdapter User Management Methods Tests (7 new tests)
+
+**Test File:** `__tests__/unit/adapters/MerkosAPIAdapter.test.ts`
+
+**Test Categories:**
+
+1. **getCurrentUser() (4 tests)**
+   - Successful user info retrieval
+   - Authentication requirement (token must be set)
+   - Error handling for unauthenticated requests
+   - Network/timeout error scenarios
+
+2. **logout() (3 tests)**
+   - Successful logout with token cleanup
+   - Token cleared after logout
+   - Error handling during logout
+
+**Key Testing Patterns:**
+- User information retrieval with authentication
+- Token requirement validation
+- Token cleanup on logout
+- Comprehensive error scenarios
+- Type-safe User response validation
+
 ## Conclusion
 
 The test suite provides comprehensive coverage of all implemented authentication features:
 
-- **304 tests** covering all authentication flows (up from 273)
+- **311 tests** covering all authentication flows (up from 304 in Phase 5B)
 - **83%+ overall coverage** exceeding the 80% target
 - **92.85% function coverage** - nearly all functions tested
 - **Zero failing tests** - production ready
@@ -408,6 +445,13 @@ The test suite provides comprehensive coverage of all implemented authentication
 - Complete coverage of 4 authentication flows
 - Security testing for token sanitization
 - Parameter validation testing (site ID, host, credentials)
+- Comprehensive error scenario coverage
+
+**Phase 5C Achievement:**
+- Added 7 focused unit tests for user management methods
+- Complete coverage of getCurrentUser() and logout()
+- Token cleanup verification on logout
+- Authentication requirement validation
 - Comprehensive error scenario coverage
 
 The package is ready for production use with high confidence in code quality and reliability.

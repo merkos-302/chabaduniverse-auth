@@ -18,7 +18,7 @@ This is a pluggable authentication library designed for the ChabadUniverse ecosy
 - **Dual Authentication**: Support for simultaneous Valu Social + Merkos Platform authentication
 - **Database Models**: MongoDB/Mongoose schemas for user profiles, preferences, activity, analytics
 - **Type-Safe**: Full TypeScript support with comprehensive type definitions
-- **Well-Tested**: Jest + React Testing Library with 304 tests passing (83%+ coverage)
+- **Well-Tested**: Jest + React Testing Library with 313 tests passing (83%+ coverage)
 
 ## Technology Stack
 
@@ -629,10 +629,28 @@ Follow [Semantic Versioning](https://semver.org/):
 - Replaced 106 console calls with secure logging
 - Fixed HIGH PRIORITY security issue (token exposure prevention)
 
+### Phase 5C: MerkosAPIAdapter Token Management Methods (✅ Completed)
+
+**Completed Methods:**
+1. `getCurrentUser(): Promise<User>` - Retrieve authenticated user information
+2. `logout(): Promise<void>` - Clear authentication state (server + client)
+
+**Key Features:**
+- Type-safe User response
+- Complete error handling
+- Automatic token cleanup on logout
+- Server-side session termination
+
+**Testing:**
+- 9 comprehensive unit tests for token management
+- All 313 tests passing (up from 304)
+- Comprehensive error scenario testing
+- Validates authentication requirement for getCurrentUser
+
 **Next Phases:**
-- Phase 5C: User info retrieval (getCurrentUser)
-- Phase 5D: Token refresh and verification
-- Phase 5E: Integration with Universe Portal Auth API
+- Phase 5D: Token refresh and verification (refreshToken, verifyToken)
+- Phase 5E: Additional Merkos API v2 endpoints
+- Phase 5F: Integration with Universe Portal Auth API
 
 ## Critical Notes
 

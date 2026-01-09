@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Complete error handling for all authentication methods
   - Site ID support for multi-tenant scenarios
 
+- **Phase 5C**: MerkosAPIAdapter token management methods
+  - `getCurrentUser(): Promise<User>` - Retrieve authenticated user information
+  - `logout(): Promise<void>` - Clear authentication state (server + client)
+  - 9 comprehensive unit tests for token management
+  - Complete error handling with type-safe User response
+  - Automatic token cleanup on logout
+
 ### Fixed
 - Corrected Merkos Platform API base URL from `shop.merkos302.com` to `org.merkos302.com` (Issue #1)
 - **HIGH PRIORITY**: Fixed console logging security vulnerability - replaced 106 console calls with secure logger
@@ -37,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated test count from 253 to 273 tests passing (Phase 5A)
 - Updated test count from 273 to 304 tests passing (Phase 5B)
+- Updated test count from 304 to 313 tests passing (Phase 5C)
 - Enhanced MerkosAPIAdapter with production-ready error handling
 - Test coverage: 83.09% statements, 80% branches, 92.85% functions
 

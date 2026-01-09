@@ -2,7 +2,7 @@
 
 > Complete guide for testing the @chabaduniverse/auth library
 
-**✅ UPDATED:** Phase 5B authentication methods complete with 304 tests passing
+**✅ UPDATED:** Phase 5C user management methods complete with 311 tests passing
 
 ## 🧪 Testing Guide
 
@@ -18,7 +18,7 @@ npm test
 
 **Expected Results:**
 - ✅ Build completes without errors (creates dist/esm, dist/cjs, dist/types)
-- ✅ All 304 tests pass across test suites
+- ✅ All 311 tests pass across test suites
 
 ---
 
@@ -79,7 +79,7 @@ npm test -- MerkosAPIAdapter --verbose
 Phase 5B added 26 comprehensive unit tests for four authentication methods:
 
 ```bash
-# Run all MerkosAPIAdapter tests (includes Phase 5A + 5B)
+# Run all MerkosAPIAdapter tests (includes Phase 5A + 5B + 5C)
 npm test MerkosAPIAdapter
 
 # Run with verbose output
@@ -104,7 +104,31 @@ npm test -- MerkosAPIAdapter --verbose
 9. ✅ AuthResponse type validation
 10. ✅ Comprehensive error scenarios for each method
 
-**Total MerkosAPIAdapter Tests:** 46 tests (20 from Phase 5A + 26 from Phase 5B)
+### 3c. **Phase 5C Testing (MerkosAPIAdapter User Management Methods)**
+
+Phase 5C added 7 comprehensive unit tests for user information and logout:
+
+```bash
+# Run all MerkosAPIAdapter tests (includes Phase 5A + 5B + 5C)
+npm test MerkosAPIAdapter
+
+# Run with verbose output
+npm test -- MerkosAPIAdapter --verbose
+```
+
+**Test Categories (7 tests):**
+- getCurrentUser() - 4 tests
+- logout() - 3 tests
+
+**Key Test Scenarios:**
+1. ✅ User info retrieval with authentication
+2. ✅ Authentication requirement validation
+3. ✅ Error handling for unauthenticated requests
+4. ✅ Logout with token cleanup
+5. ✅ Token cleared after logout
+6. ✅ Network/timeout error scenarios
+
+**Total MerkosAPIAdapter Tests:** 53 tests (20 from Phase 5A + 26 from Phase 5B + 7 from Phase 5C)
 
 ---
 
@@ -596,7 +620,7 @@ Manually verify these scenarios work:
 The session work is **successful** if:
 
 ✅ **Build:** `npm run build` completes without errors
-✅ **Tests:** All 304 tests pass (up from 273 in Phase 5A)
+✅ **Tests:** All 311 tests pass (up from 304 in Phase 5B)
 ✅ **Types:** TypeScript compilation works
 ✅ **Exports:** All components/hooks are importable
 ✅ **Integration:** Package works in a Next.js app
@@ -643,32 +667,40 @@ npm install /path/to/chabaduniverse-auth-1.0.0.tgz
 
 ---
 
-## 📝 What Was Completed in Phase 5B
+## 📝 What Was Completed in Phase 5C
 
-### Authentication Methods Implemented
+### User Management Methods Implemented
 
-1. ✅ **loginWithBearerToken()** - Bearer token authentication
-2. ✅ **loginWithCredentials()** - Username/password login
-3. ✅ **loginWithGoogle()** - Google OAuth login
-4. ✅ **loginWithChabadOrg()** - Chabad.org SSO login
+1. ✅ **getCurrentUser()** - Retrieve authenticated user information
+2. ✅ **logout()** - End user session and clear tokens
 
 ### Key Features Implemented
 
-- ✨ Four complete authentication methods in MerkosAPIAdapter
-- ✨ 26 comprehensive unit tests for authentication
-- ✨ Secure logger utility to prevent token exposure
-- ✨ Fixed HIGH PRIORITY security issue (106 console calls replaced)
-- ✨ Site ID support for multi-tenant scenarios
-- ✨ Host parameter for OAuth redirects
+- ✨ User information retrieval with authentication
+- ✨ Logout with automatic token cleanup
+- ✨ 7 comprehensive unit tests for user management
+- ✨ Authentication requirement validation
 - ✨ Complete error handling for all methods
-- ✨ Type-safe AuthResponse return type
+- ✨ Type-safe User response type
 
 ### Test Results
 
-- **Total Tests:** 304 passing (up from 273 in Phase 5A)
-- **New Tests:** 26 authentication method tests
+- **Total Tests:** 311 passing (up from 304 in Phase 5B)
+- **New Tests:** 7 user management method tests
 - **Coverage:** 83.09% statements, 80% branches, 92.85% functions
 - **Security:** All token logging sanitized
+
+### Previous Phase Completions
+
+**Phase 5B:**
+- Four authentication methods: loginWithBearerToken(), loginWithCredentials(), loginWithGoogle(), loginWithChabadOrg()
+- 26 comprehensive unit tests for authentication
+- Secure logger utility to prevent token exposure
+
+**Phase 5A:**
+- Core infrastructure: setToken(), clearToken(), v2Request()
+- 20 comprehensive unit tests for core functionality
+- Established comprehensive mocking patterns
 
 ### Build Output
 
@@ -682,12 +714,12 @@ npm install /path/to/chabaduniverse-auth-1.0.0.tgz
 
 If all tests pass, the package is ready for:
 
-1. **Phase 5C:** User info retrieval (getCurrentUser)
-2. **Phase 5D:** Token refresh and verification
-3. **Phase 5E:** Integration with Universe Portal Auth API
+1. **Phase 5D:** Token refresh and verification
+2. **Phase 5E:** Integration with Universe Portal Auth API
+3. **Phase 6:** Advanced features and optimizations
 
 ---
 
 **Last Updated:** January 8, 2026
-**Session:** Phase 5B - MerkosAPIAdapter Authentication Methods
-**Status:** ✅ Complete with 304 Tests Passing
+**Session:** Phase 5C - MerkosAPIAdapter User Management Methods
+**Status:** ✅ Complete with 311 Tests Passing

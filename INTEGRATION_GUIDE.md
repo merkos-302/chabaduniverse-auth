@@ -500,6 +500,28 @@ console.log('User:', response.user);
 console.log('Token:', response.token);
 ```
 
+### Token Management Methods (Phase 5C - Completed)
+
+The adapter now provides token management and user info retrieval:
+
+#### 1. Getting Current User
+
+```typescript
+// After authentication, retrieve user information
+const user = await adapter.getCurrentUser();
+console.log('Current user:', user.name);
+console.log('Email:', user.email);
+console.log('Permissions:', user.permissions);
+```
+
+#### 2. Logout
+
+```typescript
+// Logout (clears server session + local token)
+await adapter.logout();
+// Token is automatically cleared from memory after logout
+```
+
 #### 2. Making v2 API Requests
 
 The `v2Request<T>()` method provides type-safe access to any Merkos Platform API v2 endpoint:
@@ -630,9 +652,12 @@ const devAdapter = new MerkosAPIAdapter({
 - `loginWithGoogle(code, host?, siteId?): Promise<AuthResponse>` - Google OAuth login
 - `loginWithChabadOrg(key, siteId?): Promise<AuthResponse>` - Chabad.org SSO login
 
+**Phase 5C (✅ Completed):**
+- `getCurrentUser(): Promise<User>` - Retrieve authenticated user information
+- `logout(): Promise<void>` - Clear authentication state (server + client)
+
 **Coming in Future Phases:**
-- Phase 5C: User info retrieval (getCurrentUser)
-- Phase 5D: Token refresh and verification
+- Phase 5D: Token refresh and verification (refreshToken, verifyToken)
 - Phase 5E: Integration with Universe Portal Auth API
 
 ---
