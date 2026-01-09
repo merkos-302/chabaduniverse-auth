@@ -1,5 +1,5 @@
 import { MerkosAPIAdapter } from '../../../src/adapters/MerkosAPIAdapter';
-import { AuthError, AuthErrorCode } from '../../../src/types/auth';
+import { AuthError, AuthErrorCode, AuthResponse } from '../../../src/types/auth';
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -592,23 +592,11 @@ describe('MerkosAPIAdapter', () => {
     });
   });
 
-  describe('getCurrentUser', () => {
-    it('should throw not implemented error', async () => {
-      await expect(adapter.getCurrentUser()).rejects.toThrow('Not implemented');
-    });
-  });
-
   describe('refreshToken', () => {
     it('should throw not implemented error', async () => {
       await expect(adapter.refreshToken('refresh-token')).rejects.toThrow(
         'Not implemented'
       );
-    });
-  });
-
-  describe('logout', () => {
-    it('should not throw error', async () => {
-      await expect(adapter.logout()).resolves.toBeUndefined();
     });
   });
 
@@ -652,7 +640,6 @@ describe('MerkosAPIAdapter', () => {
     it('should handle unimplemented methods consistently', async () => {
       const methods = [
         () => adapter.loginWithCDSSO(),
-        () => adapter.getCurrentUser(),
         () => adapter.refreshToken('token'),
       ];
 
@@ -1165,6 +1152,192 @@ describe('MerkosAPIAdapter', () => {
         ).rejects.toThrow(AuthError);
 
         expect(setTokenSpy).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  // ============================================================================
+  // TOKEN MANAGEMENT TESTS (Phase 5C): getCurrentUser, logout
+  // ============================================================================
+
+  describe('Token Management Methods (Phase 5C)', () => {
+    describe('getCurrentUser', () => {
+      it('should retrieve current user info with valid token', async () => {
+        const mockUser = {
+          id: '123',
+          email: 'user@test.com',
+          name: 'Test User',
+          role: 'admin',
+          permissions: ['read', 'write']
+        };
+
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => mockUser,
+        });
+
+        adapter.setToken('valid-token');
+        const result = await adapter.getCurrentUser();
+
+        expect(result).toEqual(mockUser);
+        expect(global.fetch).toHaveBeenCalledWith(
+          'https://org.merkos302.com/api/v2',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              'identifier': 'valid-token',
+            }),
+            body: JSON.stringify({
+              service: 'auth',
+              path: 'auth:user:info',
+              params: {}
+            }),
+          })
+        );
+      });
+
+      it('should throw UNAUTHORIZED when no token is set', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            err: 'Not authenticated',
+            code: 'UNAUTHORIZED'
+          }),
+        });
+
+        await expect(adapter.getCurrentUser()).rejects.toThrow(AuthError);
+        await expect(adapter.getCurrentUser()).rejects.toThrow(expect.objectContaining({
+          code: AuthErrorCode.UNAUTHORIZED
+        }));
+      });
+
+      it('should throw TOKEN_INVALID when token is invalid', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            err: 'Token is not valid',
+            code: 'TOKEN_NOT_VALID'
+          }),
+        });
+
+        adapter.setToken('invalid-token');
+        await expect(adapter.getCurrentUser()).rejects.toThrow(AuthError);
+        await expect(adapter.getCurrentUser()).rejects.toThrow(expect.objectContaining({
+          code: AuthErrorCode.TOKEN_INVALID
+        }));
+      });
+
+      it('should throw TOKEN_EXPIRED when token is expired', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            err: 'Token expired',
+            code: 'TOKEN_EXPIRED'
+          }),
+        });
+
+        adapter.setToken('expired-token');
+        await expect(adapter.getCurrentUser()).rejects.toThrow(AuthError);
+        await expect(adapter.getCurrentUser()).rejects.toThrow(expect.objectContaining({
+          code: AuthErrorCode.TOKEN_EXPIRED
+        }));
+      });
+
+      it('should throw NETWORK_ERROR on network failure', async () => {
+        global.fetch = jest.fn().mockRejectedValue(new Error('Network failure'));
+
+        adapter.setToken('valid-token');
+        await expect(adapter.getCurrentUser()).rejects.toThrow(AuthError);
+        await expect(adapter.getCurrentUser()).rejects.toThrow(expect.objectContaining({
+          code: AuthErrorCode.NETWORK_ERROR
+        }));
+      });
+    });
+
+    describe('logout', () => {
+      it('should call server logout and clear token', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true }),
+        });
+
+        adapter.setToken('test-token');
+        await adapter.logout();
+
+        // Verify server logout was called
+        expect(global.fetch).toHaveBeenCalledWith(
+          'https://org.merkos302.com/api/v2',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              'identifier': 'test-token',
+            }),
+            body: JSON.stringify({
+              service: 'auth',
+              path: 'auth:logout',
+              params: {}
+            }),
+          })
+        );
+
+        // Verify token was cleared (check by trying to make an authenticated request)
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ user: { id: '123' } }),
+        });
+
+        await adapter.getCurrentUser();
+        const lastCall = (global.fetch as jest.Mock).mock.calls[0];
+        const headers = lastCall[1].headers;
+        expect(headers['identifier']).toBeUndefined();
+      });
+
+      it('should handle logout when no token is set', async () => {
+        global.fetch = jest.fn();
+
+        // No token set, should not call server
+        await adapter.logout();
+
+        // Server should not be called since no token
+        expect(global.fetch).not.toHaveBeenCalled();
+      });
+
+      it('should clear token even if server logout fails', async () => {
+        global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+        adapter.setToken('test-token');
+
+        // Should not throw error
+        await expect(adapter.logout()).resolves.toBeUndefined();
+
+        // Verify token was cleared despite error
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ user: { id: '123' } }),
+        });
+
+        await adapter.getCurrentUser();
+        const lastCall = (global.fetch as jest.Mock).mock.calls[0];
+        const headers = lastCall[1].headers;
+        expect(headers['identifier']).toBeUndefined();
+      });
+
+      it('should be idempotent - multiple logout calls should work', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true }),
+        });
+
+        adapter.setToken('test-token');
+
+        // First logout
+        await adapter.logout();
+
+        // Second logout should not fail
+        await expect(adapter.logout()).resolves.toBeUndefined();
+
+        // Verify server was only called once (when token existed)
+        expect(global.fetch).toHaveBeenCalledTimes(1);
       });
     });
   });

@@ -442,12 +442,44 @@ export class MerkosAPIAdapter implements AuthAPIAdapter {
   }
 
   /**
-   * Get current authenticated user
+   * Get current authenticated user information
+   *
+   * Retrieves the profile and metadata for the currently authenticated user.
+   * This method requires a valid authentication token to be set via `setToken()`.
+   * If no token is set or the token is invalid/expired, the method will throw an AuthError.
+   *
+   * @returns Promise resolving to User object with profile information
+   * @throws {AuthError} When user is not authenticated (UNAUTHORIZED)
+   * @throws {AuthError} When token is invalid or expired (TOKEN_INVALID, TOKEN_EXPIRED)
+   * @throws {AuthError} When network request fails (NETWORK_ERROR)
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   *
+   * // After successful authentication
+   * await adapter.loginWithCredentials('user@example.com', 'password');
+   *
+   * // Retrieve user information
+   * try {
+   *   const user = await adapter.getCurrentUser();
+   *   console.log('Current user:', user.name);
+   *   console.log('User email:', user.email);
+   *   console.log('User permissions:', user.permissions);
+   * } catch (error) {
+   *   if (error instanceof AuthError && error.code === AuthErrorCode.UNAUTHORIZED) {
+   *     console.error('Not authenticated, please login first');
+   *   }
+   * }
+   * ```
    */
   async getCurrentUser(): Promise<User> {
-    // TODO: Implement user info retrieval
-    // Call v2Request with service: 'auth', path: 'auth:user:info'
-    throw new Error('Not implemented');
+    const response = await this.v2Request<User>(
+      'auth',
+      'auth:user:info',
+      {}
+    );
+    return response;
   }
 
   /**
@@ -460,10 +492,39 @@ export class MerkosAPIAdapter implements AuthAPIAdapter {
 
   /**
    * Logout current user
+   *
+   * Logs out the currently authenticated user by calling the server-side logout endpoint
+   * and clearing the stored authentication token. This method ensures cleanup happens
+   * regardless of server response - if the server logout fails, the local token is still
+   * cleared to maintain security.
+   *
+   * @returns Promise resolving when logout is complete
+   *
+   * @example
+   * ```typescript
+   * const adapter = new MerkosAPIAdapter({ baseUrl: 'https://org.merkos302.com' });
+   *
+   * // After authentication
+   * await adapter.loginWithCredentials('user@example.com', 'password');
+   *
+   * // Logout when done
+   * await adapter.logout();
+   * // Token is now cleared, subsequent requests will be unauthenticated
+   * ```
    */
   async logout(): Promise<void> {
-    // TODO: Implement logout
-    // This should clear server-side session if applicable
+    // Call server-side logout endpoint if token exists
+    if (this._token) {
+      try {
+        await this.v2Request('auth', 'auth:logout', {});
+      } catch (_error) {
+        // Log error but continue with local token cleanup
+        // Server logout failure should not prevent local logout
+      }
+    }
+
+    // Always clear local token regardless of server response
+    this.clearToken();
   }
 
   /**

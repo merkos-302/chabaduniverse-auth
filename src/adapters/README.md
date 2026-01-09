@@ -15,7 +15,7 @@ The @chabaduniverse/auth library uses the Adapter Pattern to decouple authentica
 
 ### MerkosAPIAdapter
 
-**Status**: Phase 5A ✅ Completed | Phase 5B ✅ Completed
+**Status**: Phase 5A ✅ Completed | Phase 5B ✅ Completed | Phase 5C ✅ Completed
 
 The `MerkosAPIAdapter` implements authentication for the Merkos Platform API v2. It provides a complete foundation for all Merkos-based authentication operations.
 
@@ -312,10 +312,17 @@ it('should make v2 request', async () => {
 - ✅ Secure logger utility (prevents token exposure)
 - ✅ Fixed HIGH PRIORITY security issue
 
+**Phase 5C (✅ Completed):**
+- ✅ `getCurrentUser(): Promise<User>` - Retrieve authenticated user information
+- ✅ `logout(): Promise<void>` - Clear authentication state (server + client)
+- ✅ 9 comprehensive unit tests
+- ✅ Complete error handling with type-safe User response
+- ✅ Automatic token cleanup on logout
+
 **Future Phases:**
-- Phase 5C: User management (getCurrentUser, refreshToken, verifyToken)
-- Phase 5D: Additional Merkos API v2 endpoints
-- Phase 5E: Integration with Universe Portal Auth API
+- Phase 5D: Token refresh and verification (refreshToken, verifyToken)
+- Phase 5E: Additional Merkos API v2 endpoints
+- Phase 5F: Integration with Universe Portal Auth API
 
 ## Creating Custom Adapters
 
@@ -416,4 +423,4 @@ src/adapters/
 
 ---
 
-**Last Updated:** January 8, 2026 (Phase 5A Completion)
+**Last Updated:** January 8, 2026 (Phase 5C Completion)
