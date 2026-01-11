@@ -126,7 +126,7 @@
   "size-limit": [
     {
       "path": "dist/esm/index.js",
-      "limit": "15 KB"
+      "limit": "16 KB"
     },
     {
       "path": "dist/esm/react.js",

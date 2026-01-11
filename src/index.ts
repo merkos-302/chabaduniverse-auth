@@ -65,6 +65,14 @@ export * from './sync';
 export * from './providers';
 
 /**
+ * Export Universe Identity hooks (Phase 5F)
+ *
+ * These hooks provide access to the Universe Portal Auth API for
+ * identity management, Merkos enrichment, and Valu integration.
+ */
+export * from './hooks';
+
+/**
  * Note: React bindings are exported from '@chabaduniverse/auth/react'
  * Import them separately to avoid bundling React in non-React applications.
  *
