@@ -263,6 +263,34 @@ const adapter = new MerkosAPIAdapter({
 - Comprehensive error detection (API errors, network errors, timeouts)
 - Four complete authentication methods with full error handling
 
+**Quick Example:**
+
+```typescript
+import { MerkosAPIAdapter } from '@chabaduniverse/auth/adapters';
+import { AuthError, AuthErrorCode } from '@chabaduniverse/auth';
+
+const adapter = new MerkosAPIAdapter({
+  baseUrl: 'https://org.merkos302.com',
+});
+
+// Login with credentials
+try {
+  const response = await adapter.loginWithCredentials(
+    'user@example.com',
+    'password'
+  );
+  console.log('Logged in as:', response.user.name);
+} catch (error) {
+  if (error instanceof AuthError) {
+    if (error.code === AuthErrorCode.INVALID_CREDENTIALS) {
+      console.error('Invalid username or password');
+    }
+  }
+}
+```
+
+For comprehensive usage examples, see [MerkosAPIAdapter Examples](./docs/MERKOS_ADAPTER_EXAMPLES.md).
+
 ### Database Models
 
 Six MongoDB models for complete user data management:
@@ -296,6 +324,7 @@ import { User, Profile, Preferences } from '@chabaduniverse/auth/database';
 - 🚀 [Quick Start Guide](./QUICK_START.md) - Get started in 5 minutes
 - 📖 [API Documentation](./docs/) - Detailed API reference
 - 🔄 [Migration Guide](./docs/MIGRATION.md) - Migrate from universe-portal
+- 🔌 [MerkosAPIAdapter Examples](./docs/MERKOS_ADAPTER_EXAMPLES.md) - Merkos Platform API adapter usage
 
 ## Examples
 
