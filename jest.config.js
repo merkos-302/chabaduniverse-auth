@@ -29,6 +29,7 @@ export default {
     '!src/strategies/**/*',
     '!src/utils/**/*',
     // Exclude untested modules (to be tested incrementally)
+    '!src/hooks/**/*',
     '!src/activity/context/**/*',
     '!src/activity/hooks/**/*',
     '!src/analytics/context/**/*',
